@@ -3,13 +3,14 @@
 
 #include <QMainWindow>
 #include <QtWidgets>
+#include "mytablemodel.h"
 
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
 
   public:
-    MainWindow(QWidget* parent, QStringListModel* model); //list будет изменено
+    MainWindow(QWidget* parentObj, MyTableModel* model); //list будет изменено
 
     ~MainWindow();
 };

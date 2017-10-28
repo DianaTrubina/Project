@@ -1,6 +1,7 @@
 #include "mainwindow.h"
+#include "mytablemodel.h"
 
-MainWindow::MainWindow(QWidget* parent, QStringListModel* model):QMainWindow(parent) //list будет изменено
+MainWindow::MainWindow(QWidget* parentObj, MyTableModel* model):QMainWindow(parentObj) //list будет изменено
 {
   QMenuBar* menu = new QMenuBar(this);
 
