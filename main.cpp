@@ -1,17 +1,11 @@
 #include "mainwindow.h"
-#include "mytablemodel.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    MainWindow win;
 
-    MyTableModel model;
-
-    // заполнение модели
-
-    MainWindow winWgt(0,&model);
-
-    winWgt.show();
+    win.show();
 
     return app.exec();
 }

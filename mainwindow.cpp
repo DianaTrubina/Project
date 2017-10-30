@@ -1,38 +1,61 @@
 #include "mainwindow.h"
-#include "mytablemodel.h"
+#include <QDebug>
 
-MainWindow::MainWindow(QWidget* parentObj, MyTableModel* model):QMainWindow(parentObj) //list будет изменено
+QMenuBar* MainWindow::createMenuBar(MainWindow* parent)
 {
-  QMenuBar* menu = new QMenuBar(this);
+  QMenuBar* bar = new QMenuBar(parent);
+  QMenu* menuFile = new QMenu("File", bar);
+  QMenu* menuConvert = new QMenu("Convert to...", menuFile);
 
-  QMenu* menuFile = new QMenu("File", menu);
-  QMenu* menuConvert = new QMenu("Convert to ...", menuFile);
+  bar->addAction(menuFile->menuAction());
 
-  menu->addAction(menuFile->menuAction());
-
-  menuFile->addAction("Open");
-  menuFile->addAction("Save");
-  menuFile->addAction(menuConvert->menuAction());
-  menuFile->addAction("Close");
-  menuFile->addSeparator();
-  menuFile->addAction("Exit",qApp,SLOT(quit())); //повисает. пока не знаю, как писать правильно.
+  menuFile->addAction("Open");                      // 0
+  menuFile->addAction(menuConvert->menuAction());   // 1
+  menuFile->addAction("Close");                     // 2
+  menuFile->addSeparator();                         // 3
+  menuFile->addAction("Exit");                      // 4
 
   menuConvert->addAction("csv");
   menuConvert->addAction("sqlite");
 
+  return bar;
+}
+
+void MainWindow::slotOpen()
+{
+}
+
+void MainWindow::slotClose()
+{
+}
+
+void MainWindow::createConnections(QMenuBar* bar)
+{
+  QAction* button = bar->actions().at(0)->menu()->actions().at(0);   // open
+  connect(button, SIGNAL(triggered(bool)), this, SLOT(slotOpen()));
+
+  button = bar->actions().at(0)->menu()->actions().at(2);            // close
+  connect(button, SIGNAL(triggered(bool)), this, SLOT(slotClose()));
+
+  button = bar->actions().at(0)->menu()->actions().at(4);
+  connect(button, SIGNAL(triggered(bool)), qApp, SLOT(quit()));      // exit application
+}
+
+MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
+{
+  QMenuBar* menu = createMenuBar(this);
   setMenuBar(menu);
+  createConnections(menu);
 
-  QTableView* table = new QTableView(this);
-  table->setModel(model);
+  view.setModel(&SQLmodel);
 
-  setCentralWidget(table);
+  Explorer* dialog = new Explorer(this);
 
+  dialog->show();
 }
 
 MainWindow::~MainWindow()
 {
-  // ???????????????????????????????????????
-  // а как вызвать деструктор предка? а надо ли вообще, и так само удалится при Exit.
-
+  // а как вызвать деструктор предка QMainWindow?
   delete this; //?????????
 }
