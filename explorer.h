@@ -2,6 +2,7 @@
 #define EXPLORER_H
 
 #include <QtWidgets>
+#include <QtSql>
 
 class Explorer: public QWidget
 {
@@ -32,10 +33,13 @@ class Explorer: public QWidget
   signals:
     void transmitPath(const QString&);
     void transmitParent(const QModelIndex&);
+    void openSql(const QString& path, const QString& name);
+    void openCsv(const QString& path, const QString& name);
 
   private slots:
     void setLblPath(const QModelIndex& index);
     void rise(bool);
+    void openAny();
 
 };
 

@@ -14,6 +14,23 @@ void Explorer::rise(bool)
   emit transmitParent(index);
 }
 
+void Explorer::openAny()
+{
+  // сохраняем последние записи в полях
+
+  QString path = lblPath->text();
+  QString name = edit->text();
+
+  QRegExp reg("\\.sqlite3");
+
+  if (name.contains(reg))
+    emit openSql(path, name);
+  else
+    emit openCsv(path, name);
+
+  close();
+}
+
 void Explorer::createConnections()
 {
   // чем rootindex отличается от current? !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -32,10 +49,14 @@ void Explorer::createConnections()
   connect(this, SIGNAL(transmitParent(const QModelIndex&)), tableView, SLOT(setRootIndex(const QModelIndex&)));
   connect(this, SIGNAL(transmitParent(const QModelIndex&)), this, SLOT(setLblPath(const QModelIndex&)));
 
+  // не описал подстановку имени файла в поле ввода
+
+  connect(cmdCancel, SIGNAL(clicked(bool)), this, SLOT(close()));
+
   switch(flag)
   {
-    case 1:
-      //c
+    case 1: // открытие sqlite или csv
+      connect(cmdOK, SIGNAL(clicked(bool)), this, SLOT(openAny()));
       break;
     case 2:
       //c
@@ -49,6 +70,8 @@ void Explorer::createConnections()
 
 Explorer::Explorer(int k, QWidget* parent):QWidget(parent, Qt::Window | Qt::WindowStaysOnTopHint), flag(k)
 {
+  setAttribute(Qt::WA_DeleteOnClose);
+
   model.setRootPath(QDir::rootPath());
 
   treeView->setModel(&model);

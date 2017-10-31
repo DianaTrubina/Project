@@ -17,6 +17,7 @@ class MainWindow: public QMainWindow
    // QAbstractTableModel       // модель для данных из csv
 
     QMenuBar* createMenuBar(MainWindow* parent);
+
     void createConnections(QMenuBar* bar);
 
   public:
@@ -24,10 +25,18 @@ class MainWindow: public QMainWindow
 
     ~MainWindow();
 
-  public slots:
-    void slotOpen();      // открыть новую базу или csv
-    void slotClose();     // очистить модель и представление
+    QSqlTableModel* getSqlModel()
+    {
+      QSqlTableModel* p = &SQLmodel;
 
+      return p;
+    }
+
+  public slots:
+    void slotOpen();                                           // открыть проводник
+    void slotClose();                                          // очистить модель и представление
+    void openSql(const QString& path, const QString& name);
+    void openCsv(const QString& path, const QString& name);
 };
 
 

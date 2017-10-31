@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include <QDebug>
 
 QMenuBar* MainWindow::createMenuBar(MainWindow* parent)
 {
@@ -23,13 +22,27 @@ QMenuBar* MainWindow::createMenuBar(MainWindow* parent)
 
 void MainWindow::slotOpen()
 {
-  Explorer* dialog = new Explorer(1, this);
+  Explorer* win = new Explorer(1, this);
 
-  dialog->show();
+  connect(win, SIGNAL(openSql(const QString&, const QString&)), this, SLOT(openSql(const QString&, const QString&)));
+  connect(win, SIGNAL(openCsv(const QString&, const QString&)), this, SLOT(openCsv(const QString&, const QString&)));
+
+  win->show();
+}
+
+void MainWindow::openCsv(const QString& path, const QString& name)
+{
+}
+
+void MainWindow::openSql(const QString& path, const QString& name)
+{
+  SQLmodel.setTable(name); // просто имя или с путем?
+  SQLmodel.select();
 }
 
 void MainWindow::slotClose()
 {
+  // отключение от базы, файла csv, очистка моделей
 }
 
 void MainWindow::createConnections(QMenuBar* bar)
@@ -42,6 +55,7 @@ void MainWindow::createConnections(QMenuBar* bar)
 
   button = bar->actions().at(0)->menu()->actions().at(4);
   connect(button, SIGNAL(triggered(bool)), qApp, SLOT(quit()));      // exit application
+
 }
 
 MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
