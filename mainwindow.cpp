@@ -23,6 +23,9 @@ QMenuBar* MainWindow::createMenuBar(MainWindow* parent)
 
 void MainWindow::slotOpen()
 {
+  Explorer* dialog = new Explorer(1, this);
+
+  dialog->show();
 }
 
 void MainWindow::slotClose()
@@ -43,15 +46,13 @@ void MainWindow::createConnections(QMenuBar* bar)
 
 MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
 {
+  resize(1024, 768);
+
   QMenuBar* menu = createMenuBar(this);
   setMenuBar(menu);
   createConnections(menu);
 
   view.setModel(&SQLmodel);
-
-  Explorer* dialog = new Explorer(this);
-
-  dialog->show();
 }
 
 MainWindow::~MainWindow()
