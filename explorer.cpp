@@ -86,7 +86,6 @@ Explorer::Explorer(int k, QWidget* parent):QWidget(parent, Qt::Window | Qt::Wind
   layout->addWidget(edit, 5, 0, 1, 3);
   layout->addWidget(cmdOK, 5, 3, 1, 1);
   layout->addWidget(cmdCancel, 5, 4, 1, 1);
-  // layout->кнопки и т.д.
 
   setLayout(layout);
   setWindowTitle("Explorer");
@@ -95,7 +94,3 @@ Explorer::Explorer(int k, QWidget* parent):QWidget(parent, Qt::Window | Qt::Wind
   createConnections();
 }
 
-Explorer::~Explorer()
-{
-  delete this;
-}

@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-
+#include <QFileDialog>
 QMenuBar* MainWindow::createMenuBar(MainWindow* parent)
 {
   QMenuBar* bar = new QMenuBar(parent);
@@ -22,12 +22,18 @@ QMenuBar* MainWindow::createMenuBar(MainWindow* parent)
 
 void MainWindow::slotOpen()
 {
-  Explorer* win = new Explorer(1, this);
+ // Explorer* win = new Explorer(1, this);
 
-  connect(win, SIGNAL(openSql(const QString&, const QString&)), this, SLOT(openSql(const QString&, const QString&)));
-  connect(win, SIGNAL(openCsv(const QString&, const QString&)), this, SLOT(openCsv(const QString&, const QString&)));
+  //connect(win, SIGNAL(openSql(const QString&, const QString&)), this, SLOT(openSql(const QString&, const QString&)));
+  //connect(win, SIGNAL(openCsv(const QString&, const QString&)), this, SLOT(openCsv(const QString&, const QString&)));
 
-  win->show();
+ // win->show();
+    auto name = QFileDialog::getOpenFileName(this, "Open db", "", "Sqlite files(*.sqlite);;CSV file(*.csv)");
+    if (name.endsWith(".sqlite")){
+        openSql("", name);
+    } else{
+        openCsv("", name);
+    }
 }
 
 void MainWindow::openCsv(const QString& path, const QString& name)
@@ -50,6 +56,8 @@ void MainWindow::createConnections(QMenuBar* bar)
   QAction* button = bar->actions().at(0)->menu()->actions().at(0);   // open
   connect(button, SIGNAL(triggered(bool)), this, SLOT(slotOpen()));
 
+  bar->actions().at(0)->menu()->actions().at(1)->setEnabled(false);
+  bar->actions().at(0)->menu()->actions().at(2)->setEnabled(false);
   button = bar->actions().at(0)->menu()->actions().at(2);            // close
   connect(button, SIGNAL(triggered(bool)), this, SLOT(slotClose()));
 
@@ -69,8 +77,4 @@ MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
   view.setModel(&SQLmodel);
 }
 
-MainWindow::~MainWindow()
-{
-  // а как вызвать деструктор предка QMainWindow?
-  delete this; //?????????
-}
+
