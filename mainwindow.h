@@ -5,8 +5,6 @@
 #include <QtWidgets>        //qtableview
 #include <QtSql>
 
-#include "explorer.h"
-
 class MainWindow: public QMainWindow
 {
   Q_OBJECT
@@ -14,26 +12,23 @@ class MainWindow: public QMainWindow
   private:
     QTableView view;
     QSqlTableModel SQLmodel;  // модель для данных, возвращенных sql-запросами
+    QMenuBar* menuBar;
+    // QSqlDatabase
 
-    QMenuBar* createMenuBar(MainWindow* parent);
-
-    void createConnections(QMenuBar* bar);
+    void createMenuBar(MainWindow* parent);
+    void createConnections();
+    void openSql(const QString& name);
+    void openCsv(const QString& name);
 
   public:
     MainWindow(QWidget* parent = 0);
 
-    QSqlTableModel* getSqlModel()
-    {
-      QSqlTableModel* p = &SQLmodel;
-
-      return p;
-    }
+  signals:
+    void requestToBeEnabled(const QString& type);
 
   public slots:
     void slotOpen();                                           // открыть проводник
-    void slotClose();                                          // очистить модель и представление
-    void openSql(const QString& path, const QString& name);
-    void openCsv(const QString& path, const QString& name);
+    void makeEnabled(const QString& str);
 };
 
 
