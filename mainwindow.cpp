@@ -1,67 +1,72 @@
 #include "mainwindow.h"
 #include <QFileDialog>
-QMenuBar* MainWindow::createMenuBar(MainWindow* parent)
+
+void MainWindow::createMenuBar(MainWindow* parent)
 {
-  QMenuBar* bar = new QMenuBar(parent);
-  QMenu* menuFile = new QMenu("File", bar);
+  menuBar = new QMenuBar(parent);
+  QMenu* menuFile = new QMenu("File", menuBar);
   QMenu* menuConvert = new QMenu("Convert to...", menuFile);
 
-  bar->addAction(menuFile->menuAction());
+  menuBar->addAction(menuFile->menuAction());
 
   menuFile->addAction("Open");                      // 0
   menuFile->addAction(menuConvert->menuAction());   // 1
-  menuFile->addAction("Close");                     // 2
-  menuFile->addSeparator();                         // 3
-  menuFile->addAction("Exit");                      // 4
+  menuFile->addSeparator();                         // 2
+  menuFile->addAction("Exit");                      // 3
 
-  menuConvert->addAction("csv");
-  menuConvert->addAction("sqlite");
+  menuConvert->addAction("csv");                    // 1.0
+  menuConvert->addAction("sqlite");                 // 1.1
 
-  return bar;
+  menuBar->actions().at(0)->menu()->actions().at(1)->setEnabled(false);
+  menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(0)->setEnabled(false);
+  menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1)->setEnabled(false);
+}
+
+void MainWindow::makeEnabled(const QString& str)
+{
+  menuBar->actions().at(0)->menu()->actions().at(1)->setEnabled(true);
+
+  if (str == "sql")
+    menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(0)->setEnabled(true);
+  else
+    menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1)->setEnabled(true);
 }
 
 void MainWindow::slotOpen()
 {
- // Explorer* win = new Explorer(1, this);
+  QString name = QFileDialog::getOpenFileName(this, "Explorer", "", "SQLite files(*.sqlite);;CSV files(*.csv)");
 
-  //connect(win, SIGNAL(openSql(const QString&, const QString&)), this, SLOT(openSql(const QString&, const QString&)));
-  //connect(win, SIGNAL(openCsv(const QString&, const QString&)), this, SLOT(openCsv(const QString&, const QString&)));
-
- // win->show();
-    auto name = QFileDialog::getOpenFileName(this, "Open db", "", "Sqlite files(*.sqlite);;CSV file(*.csv)");
-    if (name.endsWith(".sqlite")){
-        openSql("", name);
-    } else{
-        openCsv("", name);
+  if (name.endsWith(".sqlite3"))
+  {
+    openSql(name);
+    makeEnabled("sql");
+  }
+  else
+    if (name.endsWith(".csv"))
+    {
+      openCsv(name);
+      makeEnabled("csv");
     }
 }
 
-void MainWindow::openCsv(const QString& path, const QString& name)
+void MainWindow::openCsv(const QString& name)
 {
 }
 
-void MainWindow::openSql(const QString& path, const QString& name)
+void MainWindow::openSql(const QString& name)
 {
-  SQLmodel.setTable(name); // просто имя или с путем?
-  SQLmodel.select();
+ // SQLmodel.setTable(name); // просто имя или с путем?
+ // SQLmodel.select();
 }
 
-void MainWindow::slotClose()
+void MainWindow::createConnections()
 {
-  // отключение от базы, файла csv, очистка моделей
-}
-
-void MainWindow::createConnections(QMenuBar* bar)
-{
-  QAction* button = bar->actions().at(0)->menu()->actions().at(0);   // open
+  QAction* button = menuBar->actions().at(0)->menu()->actions().at(0);   // open
   connect(button, SIGNAL(triggered(bool)), this, SLOT(slotOpen()));
 
-  bar->actions().at(0)->menu()->actions().at(1)->setEnabled(false);
-  bar->actions().at(0)->menu()->actions().at(2)->setEnabled(false);
-  button = bar->actions().at(0)->menu()->actions().at(2);            // close
-  connect(button, SIGNAL(triggered(bool)), this, SLOT(slotClose()));
+  // connect для convert
 
-  button = bar->actions().at(0)->menu()->actions().at(4);
+  button = menuBar->actions().at(0)->menu()->actions().at(3);
   connect(button, SIGNAL(triggered(bool)), qApp, SLOT(quit()));      // exit application
 
 }
@@ -70,9 +75,10 @@ MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
 {
   resize(1024, 768);
 
-  QMenuBar* menu = createMenuBar(this);
-  setMenuBar(menu);
-  createConnections(menu);
+  createMenuBar(this);
+  setMenuBar(menuBar);
+
+  createConnections();
 
   view.setModel(&SQLmodel);
 }
