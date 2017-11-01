@@ -14,7 +14,6 @@ class MainWindow: public QMainWindow
   private:
     QTableView view;
     QSqlTableModel SQLmodel;  // модель для данных, возвращенных sql-запросами
-   // QAbstractTableModel       // модель для данных из csv
 
     QMenuBar* createMenuBar(MainWindow* parent);
 
@@ -22,8 +21,6 @@ class MainWindow: public QMainWindow
 
   public:
     MainWindow(QWidget* parent = 0);
-
-    ~MainWindow();
 
     QSqlTableModel* getSqlModel()
     {
