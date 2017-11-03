@@ -72,23 +72,15 @@ void MainWindow::makeDisabled()
 
 void MainWindow::setModelForTable(const QString & name)
 {
-  model.clear();
-  model.setTable(name);
- // bool kk = model.select();
+  if (!(name == ""))
+  {
+    QSqlQuery query;
+    bool kk = query.exec("SELECT * FROM " + name + ";");
 
-   QSqlQuery query;
-   query.prepare("SELECT * FROM ? ;");
-   query.addBindValue(name);
-   bool kk = query.exec();
+    model.setQuery(query);
 
-  // statusBar()->showMessage(kk ? model.tableName()+" ok" : model.tableName()+" failure");
-
-  statusBar()->showMessage(QString("%1, %2").arg( (int) query.lastError().type()).arg( (int) query.isSelect()));
-
-  view->setModel(&model);
-  // view->show();
-
-  // statusBar()->showMessage("view done");
+    statusBar()->showMessage(QString("%1, %2, %3").arg(query.isActive()).arg(query.isSelect()).arg(kk));
+  }
 }
 
 void MainWindow::slotOpen()
@@ -98,16 +90,19 @@ void MainWindow::slotOpen()
     makeDisabled();
 
     if (db.isOpen())
+    {
+      model.clear();
       db.close(); // db.remove("defaultConnection") надо добавлять?
+    }
     else
     {} //действия если был открыт csv
 
     isOpen = false;
   }
 
-  QString name = QFileDialog::getOpenFileName(this, "Explorer", "", "SQLite files(*.db);;CSV files(*.csv)");
+  QString name = QFileDialog::getOpenFileName(this, "Explorer", "", "SQLite files(*.sqlite *.db);;CSV files(*.csv)");
 
-  if (name.endsWith(".db"))
+  if (name.endsWith(".sqlite") || name.endsWith(".db"))
   {
     isOpen = true;
     makeEnabled("sql");
@@ -148,6 +143,7 @@ MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
   createConnections();
 
   view = new QTableView(this);
+  view->setModel(&model);
   setCentralWidget(view);
 }
 

@@ -14,7 +14,7 @@ class MainWindow: public QMainWindow
   private:
     bool isOpen = false;
     QSqlDatabase db;          // соединение с бд
-    QSqlTableModel model;
+    QSqlQueryModel model;
 
     QMenuBar* menuBar;
     QToolBar* toolBar;
