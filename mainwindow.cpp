@@ -1,80 +1,154 @@
 #include "mainwindow.h"
+#include "sqltablemodel.h"
 #include <QFileDialog>
-QMenuBar* MainWindow::createMenuBar(MainWindow* parent)
+
+void MainWindow::createMenuBar(MainWindow* parent)
 {
-  QMenuBar* bar = new QMenuBar(parent);
-  QMenu* menuFile = new QMenu("File", bar);
+  menuBar = new QMenuBar(parent);
+  QMenu* menuFile = new QMenu("File", menuBar);
   QMenu* menuConvert = new QMenu("Convert to...", menuFile);
 
-  bar->addAction(menuFile->menuAction());
+  menuBar->addAction(menuFile->menuAction());
 
   menuFile->addAction("Open");                      // 0
   menuFile->addAction(menuConvert->menuAction());   // 1
-  menuFile->addAction("Close");                     // 2
-  menuFile->addSeparator();                         // 3
-  menuFile->addAction("Exit");                      // 4
+  menuFile->addSeparator();                         // 2
+  menuFile->addAction("Exit");                      // 3
 
-  menuConvert->addAction("csv");
-  menuConvert->addAction("sqlite");
+  menuConvert->addAction("csv");                    // 1.0
+  menuConvert->addAction("sqlite");                 // 1.1
 
-  return bar;
+  menuBar->actions().at(0)->menu()->actions().at(1)->setEnabled(false);
+  menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(0)->setEnabled(false);
+  menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1)->setEnabled(false);
+}
+
+void MainWindow::createToolBar(MainWindow* parent)
+{
+  toolBar = new QToolBar(parent);
+  tablesBox = new QComboBox(toolBar);
+
+  toolBar->setMovable(false);
+  toolBar->addWidget(tablesBox);
+  tablesBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+  tablesBox->setEnabled(false);
+}
+
+void MainWindow::createConnections()
+{
+  QAction* button = menuBar->actions().at(0)->menu()->actions().at(0);   // open
+  connect(button, SIGNAL(triggered(bool)), this, SLOT(slotOpen()));
+
+  // connect для convert
+
+  button = menuBar->actions().at(0)->menu()->actions().at(3);           // exit application
+  connect(button, SIGNAL(triggered(bool)), qApp, SLOT(quit()));
+
+  // выбор показа таблицы
+  connect(tablesBox, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(setModelForTable(const QString&)));
+}
+
+void MainWindow::makeEnabled(const QString& str)
+{
+  menuBar->actions().at(0)->menu()->actions().at(1)->setEnabled(true);  // convert to...
+
+  if (str == "sql")
+  {
+    menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(0)->setEnabled(true); // to csv
+    tablesBox->setEnabled(true);
+  }
+  else
+    menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1)->setEnabled(true); // to sql
+}
+
+void MainWindow::makeDisabled()
+{
+  menuBar->actions().at(0)->menu()->actions().at(1)->setEnabled(false);  // convert to...
+  menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(0)->setEnabled(false); // to csv
+  menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1)->setEnabled(false); // to sql
+  tablesBox->clear();
+  tablesBox->setEnabled(false);
+}
+
+void MainWindow::setModelForTable(const QString & name)
+{
+  model.clear();
+  model.setTable(name);
+ // bool kk = model.select();
+
+   QSqlQuery query;
+   query.prepare("SELECT * FROM ? ;");
+   query.addBindValue(name);
+   bool kk = query.exec();
+
+  // statusBar()->showMessage(kk ? model.tableName()+" ok" : model.tableName()+" failure");
+
+  statusBar()->showMessage(QString("%1, %2").arg( (int) query.lastError().type()).arg( (int) query.isSelect()));
+
+  view->setModel(&model);
+  // view->show();
+
+  // statusBar()->showMessage("view done");
 }
 
 void MainWindow::slotOpen()
 {
- // Explorer* win = new Explorer(1, this);
+  if (isOpen)
+  {
+    makeDisabled();
 
-  //connect(win, SIGNAL(openSql(const QString&, const QString&)), this, SLOT(openSql(const QString&, const QString&)));
-  //connect(win, SIGNAL(openCsv(const QString&, const QString&)), this, SLOT(openCsv(const QString&, const QString&)));
+    if (db.isOpen())
+      db.close(); // db.remove("defaultConnection") надо добавлять?
+    else
+    {} //действия если был открыт csv
 
- // win->show();
-    auto name = QFileDialog::getOpenFileName(this, "Open db", "", "Sqlite files(*.sqlite);;CSV file(*.csv)");
-    if (name.endsWith(".sqlite")){
-        openSql("", name);
-    } else{
-        openCsv("", name);
+    isOpen = false;
+  }
+
+  QString name = QFileDialog::getOpenFileName(this, "Explorer", "", "SQLite files(*.db);;CSV files(*.csv)");
+
+  if (name.endsWith(".db"))
+  {
+    isOpen = true;
+    makeEnabled("sql");
+    openSql(name);
+  }
+  else
+    if (name.endsWith(".csv"))
+    {
+      isOpen = true;
+      makeEnabled("csv");
+      openCsv(name);
     }
 }
 
-void MainWindow::openCsv(const QString& path, const QString& name)
+void MainWindow::openSql(const QString& name)
 {
+  db = QSqlDatabase::addDatabase("QSQLITE");
+  db.setDatabaseName(name);
+  db.open();
+
+  tablesBox->addItems(db.tables());
 }
 
-void MainWindow::openSql(const QString& path, const QString& name)
+void MainWindow::openCsv(const QString& name)
 {
-  SQLmodel.setTable(name); // просто имя или с путем?
-  SQLmodel.select();
-}
-
-void MainWindow::slotClose()
-{
-  // отключение от базы, файла csv, очистка моделей
-}
-
-void MainWindow::createConnections(QMenuBar* bar)
-{
-  QAction* button = bar->actions().at(0)->menu()->actions().at(0);   // open
-  connect(button, SIGNAL(triggered(bool)), this, SLOT(slotOpen()));
-
-  bar->actions().at(0)->menu()->actions().at(1)->setEnabled(false);
-  bar->actions().at(0)->menu()->actions().at(2)->setEnabled(false);
-  button = bar->actions().at(0)->menu()->actions().at(2);            // close
-  connect(button, SIGNAL(triggered(bool)), this, SLOT(slotClose()));
-
-  button = bar->actions().at(0)->menu()->actions().at(4);
-  connect(button, SIGNAL(triggered(bool)), qApp, SLOT(quit()));      // exit application
-
 }
 
 MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
 {
   resize(1024, 768);
 
-  QMenuBar* menu = createMenuBar(this);
-  setMenuBar(menu);
-  createConnections(menu);
+  createMenuBar(this);
+  setMenuBar(menuBar);
 
-  view.setModel(&SQLmodel);
+  createToolBar(this);
+  addToolBar(Qt::TopToolBarArea, toolBar);
+
+  createConnections();
+
+  view = new QTableView(this);
+  setCentralWidget(view);
 }
 
 

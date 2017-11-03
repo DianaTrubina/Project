@@ -3,37 +3,39 @@
 
 #include <QMainWindow>
 #include <QtWidgets>        //qtableview
-#include <QtSql>
 
-#include "explorer.h"
+#include <QtSql>
+#include "sqltablemodel.h"
 
 class MainWindow: public QMainWindow
 {
   Q_OBJECT
 
   private:
-    QTableView view;
-    QSqlTableModel SQLmodel;  // модель для данных, возвращенных sql-запросами
+    bool isOpen = false;
+    QSqlDatabase db;          // соединение с бд
+    QSqlTableModel model;
 
-    QMenuBar* createMenuBar(MainWindow* parent);
+    QMenuBar* menuBar;
+    QToolBar* toolBar;
+    QTableView* view;
+    QComboBox* tablesBox;
 
-    void createConnections(QMenuBar* bar);
+    void createMenuBar(MainWindow* parent);
+    void createToolBar(MainWindow* parent);
+    void makeEnabled(const QString& str);
+    void makeDisabled();
+    void createConnections();
+    void openSql(const QString& name);
+    void openCsv(const QString& name);
 
   public:
     MainWindow(QWidget* parent = 0);
 
-    QSqlTableModel* getSqlModel()
-    {
-      QSqlTableModel* p = &SQLmodel;
-
-      return p;
-    }
-
   public slots:
-    void slotOpen();                                           // открыть проводник
-    void slotClose();                                          // очистить модель и представление
-    void openSql(const QString& path, const QString& name);
-    void openCsv(const QString& path, const QString& name);
+    void slotOpen();        // открыть проводник
+    void setModelForTable(const QString& name);
+
 };
 
 

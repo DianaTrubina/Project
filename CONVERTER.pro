@@ -26,8 +26,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    explorer.cpp
+    sqltablemodel.cpp
 
 HEADERS += \
         mainwindow.h \
-    explorer.h
+    sqltablemodel.h
