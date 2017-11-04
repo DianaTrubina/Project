@@ -6,6 +6,7 @@
 
 #include <QtSql>
 #include "sqltablemodel.h"
+#include "dialog.h"
 
 class MainWindow: public QMainWindow
 {
@@ -13,6 +14,7 @@ class MainWindow: public QMainWindow
 
   private:
     bool isOpen = false;
+
     QSqlDatabase db;          // соединение с бд
     QSqlQueryModel model;
 
@@ -20,6 +22,7 @@ class MainWindow: public QMainWindow
     QToolBar* toolBar;
     QTableView* view;
     QComboBox* tablesBox;
+    Dialog* dialog;
 
     void createMenuBar(MainWindow* parent);
     void createToolBar(MainWindow* parent);
@@ -35,7 +38,7 @@ class MainWindow: public QMainWindow
   public slots:
     void slotOpen();        // открыть проводник
     void setModelForTable(const QString& name);
-
+    void convertToSql();
 };
 
 
