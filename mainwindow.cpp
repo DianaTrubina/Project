@@ -74,7 +74,7 @@ void MainWindow::setModelForTable(const QString & name)
 {
   if (!(name == "")) // чтобы не было реакции при очистке через makeDisabled()
   {
-    QSqlQuery query;
+    QSqlQuery query(db);
     bool kk = query.exec("SELECT * FROM " + name + ";");
 
     model.setQuery(query);
@@ -92,7 +92,7 @@ void MainWindow::slotOpen()
     if (isOpen)           // если нажали Open 2 раза подряд
     {
       makeDisabled();     // приводим видимость виджетов в исходное "пустое" состояние
-      model.clear();      // чистим модель и, следовательно, представление
+      model.clear();      // чистим модель и, следовательно, представление (перенести перед if(isOpen))
 
       if (db.isOpen())    // если в прошлый Open открывалась база
       {
@@ -100,7 +100,7 @@ void MainWindow::slotOpen()
         // db.remove("defaultConnection") надо добавлять (т.к. остается в списке соединений)?
       }
       else                // в прошлый раз база не открывалась
-      {} //действия если был открыт csv
+      {} //действия если был открыт csv (вроде не надо)
 
       isOpen = false;     // сбрасываем состояние
     }
@@ -167,6 +167,9 @@ MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
   view = new QTableView(this);
   view->setModel(&model);
   setCentralWidget(view);
+
+  dialog = new Dialog(this);
+  dialog->exec();
 }
 
 

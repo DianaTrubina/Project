@@ -35,6 +35,11 @@ class MainWindow: public QMainWindow
   public:
     MainWindow(QWidget* parent = 0);
 
+    const QSqlQueryModel& getModel()
+    {
+      return model;
+    }
+
   public slots:
     void slotOpen();        // открыть проводник
     void setModelForTable(const QString& name);
