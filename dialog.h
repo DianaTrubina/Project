@@ -3,6 +3,7 @@
 
 #include <QtWidgets>
 #include <QtSql>
+#include <QList>
 
 class Dialog : public QDialog
 {
@@ -10,6 +11,7 @@ class Dialog : public QDialog
 
   private:
     QSqlDatabase db;
+    QStringList lst;
     QGroupBox* gbx1;
     QGroupBox* gbx2;
     QToolButton* cmd;
@@ -23,6 +25,7 @@ class Dialog : public QDialog
   public slots:
     void getDbName();
     void actWithDb(const QString& name);
+    void convertToSQL();
 };
 
 #endif // DIALOG_H
