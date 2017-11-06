@@ -4,6 +4,7 @@
 #include <QtWidgets>
 #include <QtSql>
 #include <QList>
+#include <QString>
 
 class Dialog : public QDialog
 {
@@ -12,6 +13,7 @@ class Dialog : public QDialog
   private:
     QSqlDatabase db;
     QStringList lst;
+
     QGroupBox* gbx1;
     QGroupBox* gbx2;
     QToolButton* cmd;
@@ -19,11 +21,15 @@ class Dialog : public QDialog
     QComboBox* combo;
     QDialogButtonBox* btns;
 
+    QString whatTypeOfAttribute(const QString& str) const;
+    void fillHeader(const QSqlQueryModel& model);
+    void fillData(const QSqlQueryModel& model);
+
   public:
     Dialog(QWidget* parent = 0);
 
   public slots:
-    void getDbName();
+    void aqcuireDbName();
     void actWithDb(const QString& name);
     void convertToSQL();
 };

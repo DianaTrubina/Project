@@ -3,10 +3,9 @@
 
 #include <QMainWindow>
 #include <QtWidgets>        //qtableview
-
 #include <QtSql>
-#include "sqltablemodel.h"
-#include "dialog.h"
+
+class Dialog;
 
 class MainWindow: public QMainWindow
 {
@@ -41,7 +40,7 @@ class MainWindow: public QMainWindow
     }
 
   public slots:
-    void slotOpen();        // открыть проводник
+    void slotOpen();                               // открыть проводник
     void setModelForTable(const QString& name);
     void convertToSql();
 };
