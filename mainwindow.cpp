@@ -39,7 +39,10 @@ void MainWindow::createConnections()
   QAction* button = menuBar->actions().at(0)->menu()->actions().at(0);   // open
   connect(button, SIGNAL(triggered(bool)), this, SLOT(slotOpen()));
 
-  // connect для convert
+  button = menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1); // to SQLite
+  connect(button, SIGNAL(triggered(bool)), this, SLOT(convertToSql()));
+
+  // connect для convert to CSV!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   button = menuBar->actions().at(0)->menu()->actions().at(3);           // exit application
   connect(button, SIGNAL(triggered(bool)), qApp, SLOT(quit()));
@@ -97,10 +100,11 @@ void MainWindow::slotOpen()
       if (db.isOpen())    // если в прошлый Open открывалась база
       {
         db.close();
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // db.remove("defaultConnection") надо добавлять (т.к. остается в списке соединений)?
       }
       else                // в прошлый раз база не открывалась
-      {} //действия если был открыт csv (вроде не надо)
+      {} //действия если был открыт csv (будет пустым)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       isOpen = false;     // сбрасываем состояние
     }
@@ -132,24 +136,14 @@ void MainWindow::openSql(const QString& name)
 
 void MainWindow::openCsv(const QString& name)
 {
-
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 void MainWindow::convertToSql()
 {
   dialog = new Dialog(this);
   dialog->resize(400,400);
-
-  if(dialog->exec())
-  {
-    // конвертация в sql
-  }
-  else
-  {
-    // закрытие существующей базы/удаление пустой созданной
-  }
-
-
+  dialog->exec();
 }
 
 MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
@@ -167,9 +161,6 @@ MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
   view = new QTableView(this);
   view->setModel(&model);
   setCentralWidget(view);
-
-  dialog = new Dialog(this);
-  dialog->exec();
 }
 
 
