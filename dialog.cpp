@@ -69,10 +69,8 @@ void Dialog::actWithDb(const QString& name)
     combo->addItems(lst);
   else                      // база пустая
   {
-      // ставим в текущий текст комбо-бокса имя открытого в mainwindow файла!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!
-      // как получить просто имя файлы из пути в name в mainwindow!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      // !!!!!!!!!!!
+      combo->addItem(((MainWindow*) parent())->whatFileName());
+      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
 }
 
@@ -98,12 +96,12 @@ void Dialog::convertToSQL()
 
 QString Dialog::whatTypeOfAttribute(const QString& str) const
 {
-  QRegExp reg("^\\-?[0-9]+\\.?[0-9]+$");
+  QRegExp reg("^\\-?\\d+\\.?\\d+$");
 
   if (str.contains(reg))
      return "REAL";
 
-  reg = QRegExp("^\\-?[0-9]+$");
+  reg = QRegExp("^\\-?\\d+$");
   if(str.contains(reg))
     return "INTEGER";
 

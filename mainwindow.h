@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QtWidgets>        //qtableview
 #include <QtSql>
+#include <QFileInfo>
 
 class Dialog;
 
@@ -23,6 +24,8 @@ class MainWindow: public QMainWindow
     QComboBox* tablesBox;
     Dialog* dialog;
 
+    QFileInfo currentFile;
+
     void createMenuBar(MainWindow* parent);
     void createToolBar(MainWindow* parent);
     void makeEnabled(const QString& str);
@@ -34,9 +37,16 @@ class MainWindow: public QMainWindow
   public:
     MainWindow(QWidget* parent = 0);
 
+    QFileInfo fgfg;
+
     const QSqlQueryModel& getModel()
     {
       return model;
+    }
+
+    QString whatFileName() const
+    {
+      return currentFile.baseName();
     }
 
   public slots:
