@@ -4,6 +4,7 @@
 
 Dialog::Dialog(QWidget* parent):QDialog(parent)
 {
+
   setFixedSize(300, 200);
 
   setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint);
@@ -23,6 +24,7 @@ Dialog::Dialog(QWidget* parent):QDialog(parent)
   cmd->setText("...");
   edit->setReadOnly(true);
   combo->setEditable(true);
+
   combo->setInsertPolicy(QComboBox::NoInsert);
   combo->setEnabled(false);
 
@@ -90,13 +92,11 @@ void Dialog::convertToSQL()
   }
 
   const QSqlQueryModel& model = (qobject_cast<MainWindow*>(parent()))->getModel();
-
+  
   fillHeader(model);
 
   if (model.rowCount())
-  {
     fillData(model);
-  }
 
   db.close();
   accept(); // вызов accept(), т.к. нажимали OK
