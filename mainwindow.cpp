@@ -144,7 +144,6 @@ void MainWindow::openCsv(const QString& name)
 void MainWindow::convertToSql()
 {
   dialog = new Dialog(this);
-  dialog->resize(400,400);
   dialog->exec();
 }
 
@@ -163,6 +162,9 @@ MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
   view = new QTableView(this);
   view->setModel(&model);
   setCentralWidget(view);
+
+  dialog = new Dialog(this);
+  dialog->exec();
 }
 
 

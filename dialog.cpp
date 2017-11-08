@@ -4,10 +4,13 @@
 
 Dialog::Dialog(QWidget* parent):QDialog(parent)
 {
-  setWindowFlags(Qt::Window | Qt::WindowSystemMenuHint);
+
+  setFixedSize(300, 200);
+
+  setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint);
   setWindowTitle("Convert to SQLite");
 
-  setAttribute(Qt::WA_DeleteOnClose); // поэтому не буду писать отсоединение базы и деструктор
+  setAttribute(Qt::WA_DeleteOnClose); // чтобы каждый раз при закрытии вызывался деструктор
 
   gbx1 = new QGroupBox(this);
   gbx2 = new QGroupBox(this);
@@ -21,7 +24,7 @@ Dialog::Dialog(QWidget* parent):QDialog(parent)
   cmd->setText("...");
   edit->setReadOnly(true);
   combo->setEditable(true);
-  combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+
   combo->setInsertPolicy(QComboBox::NoInsert);
   combo->setEnabled(false);
 
@@ -48,8 +51,6 @@ Dialog::Dialog(QWidget* parent):QDialog(parent)
 
 void Dialog::aqcuireDbName()
 {
-  // надо будет заменить кнопки "Save" на "Open"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   QString dbName = QFileDialog::getSaveFileName(this, "Explorer", "", "SQLite files(*.sqlite *.db)", Q_NULLPTR, QFileDialog::DontConfirmOverwrite);
 
   if(dbName != "")          // если реально был выбран файл, а не нажали Cancel
@@ -58,6 +59,13 @@ void Dialog::aqcuireDbName()
 
 void Dialog::actWithDb(const QString& name)
 {
+  if (db.isOpen())
+  {
+    db.close();
+    combo->clear();
+    combo->setEnabled(false);
+  }
+
   db = QSqlDatabase::addDatabase("QSQLITE", "tempDbConnection");
   db.setDatabaseName(name);
   db.open();                // открывает существующую либо создает новую
@@ -69,7 +77,8 @@ void Dialog::actWithDb(const QString& name)
     combo->addItems(lst);
   else                      // база пустая
   {
-      combo->addItem(((MainWindow*) parent())->whatFileName());
+   // combo->addItem("test12345");
+   combo->addItem((qobject_cast<MainWindow*>(parent()))->whatFileName());
       // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
 }
@@ -82,15 +91,14 @@ void Dialog::convertToSQL()
     query.exec("DROP TABLE " + combo->currentText() + ";");
   }
 
-  const QSqlQueryModel& model = ((MainWindow*) parent())->getModel();
-
+  const QSqlQueryModel& model = (qobject_cast<MainWindow*>(parent()))->getModel();
+  
   fillHeader(model);
 
   if (model.rowCount())
-  {
     fillData(model);
-  }
 
+  db.close();
   accept(); // вызов accept(), т.к. нажимали OK
 }
 
