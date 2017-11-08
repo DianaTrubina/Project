@@ -3,9 +3,10 @@
 
 #include <QMainWindow>
 #include <QtWidgets>        //qtableview
-
 #include <QtSql>
-#include "sqltablemodel.h"
+#include <QFileInfo>
+
+class Dialog;
 
 class MainWindow: public QMainWindow
 {
@@ -13,6 +14,7 @@ class MainWindow: public QMainWindow
 
   private:
     bool isOpen = false;
+
     QSqlDatabase db;          // соединение с бд
     QSqlQueryModel model;
 
@@ -20,6 +22,9 @@ class MainWindow: public QMainWindow
     QToolBar* toolBar;
     QTableView* view;
     QComboBox* tablesBox;
+    Dialog* dialog;
+
+    QFileInfo currentFile;
 
     void createMenuBar(MainWindow* parent);
     void createToolBar(MainWindow* parent);
@@ -32,10 +37,22 @@ class MainWindow: public QMainWindow
   public:
     MainWindow(QWidget* parent = 0);
 
-  public slots:
-    void slotOpen();        // открыть проводник
-    void setModelForTable(const QString& name);
+    QFileInfo fgfg;
 
+    const QSqlQueryModel& getModel()
+    {
+      return model;
+    }
+
+    QString whatFileName() const
+    {
+      return currentFile.baseName();
+    }
+
+  public slots:
+    void slotOpen();                               // открыть проводник
+    void setModelForTable(const QString& name);
+    void convertToSql();
 };
 
 

@@ -1,6 +1,6 @@
 #include "mainwindow.h"
-#include "sqltablemodel.h"
 #include <QFileDialog>
+#include "dialog.h"
 
 void MainWindow::createMenuBar(MainWindow* parent)
 {
@@ -15,8 +15,8 @@ void MainWindow::createMenuBar(MainWindow* parent)
   menuFile->addSeparator();                         // 2
   menuFile->addAction("Exit");                      // 3
 
-  menuConvert->addAction("csv");                    // 1.0
-  menuConvert->addAction("sqlite");                 // 1.1
+  menuConvert->addAction("CSV");                    // 1.0
+  menuConvert->addAction("SQLite");                 // 1.1
 
   menuBar->actions().at(0)->menu()->actions().at(1)->setEnabled(false);
   menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(0)->setEnabled(false);
@@ -39,7 +39,10 @@ void MainWindow::createConnections()
   QAction* button = menuBar->actions().at(0)->menu()->actions().at(0);   // open
   connect(button, SIGNAL(triggered(bool)), this, SLOT(slotOpen()));
 
-  // connect для convert
+  button = menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1); // to SQLite
+  connect(button, SIGNAL(triggered(bool)), this, SLOT(convertToSql()));
+
+  // connect для convert to CSV!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   button = menuBar->actions().at(0)->menu()->actions().at(3);           // exit application
   connect(button, SIGNAL(triggered(bool)), qApp, SLOT(quit()));
@@ -72,9 +75,9 @@ void MainWindow::makeDisabled()
 
 void MainWindow::setModelForTable(const QString & name)
 {
-  if (!(name == ""))
+  if (!(name == "")) // чтобы не было реакции при очистке через makeDisabled()
   {
-    QSqlQuery query;
+    QSqlQuery query(db);
     bool kk = query.exec("SELECT * FROM " + name + ";");
 
     model.setQuery(query);
@@ -85,36 +88,43 @@ void MainWindow::setModelForTable(const QString & name)
 
 void MainWindow::slotOpen()
 {
-  if (isOpen)
-  {
-    makeDisabled();
-
-    if (db.isOpen())
-    {
-      model.clear();
-      db.close(); // db.remove("defaultConnection") надо добавлять?
-    }
-    else
-    {} //действия если был открыт csv
-
-    isOpen = false;
-  }
-
   QString name = QFileDialog::getOpenFileName(this, "Explorer", "", "SQLite files(*.sqlite *.db);;CSV files(*.csv)");
 
-  if (name.endsWith(".sqlite") || name.endsWith(".db"))
+  currentFile = QFileInfo(name);
+
+  if (name != "")         // если реально выбрали файл, а не нажали Cancel
   {
-    isOpen = true;
-    makeEnabled("sql");
-    openSql(name);
-  }
-  else
-    if (name.endsWith(".csv"))
+    if (isOpen)           // если нажали Open 2 раза подряд
+    {
+      makeDisabled();     // приводим видимость виджетов в исходное "пустое" состояние
+      model.clear();      // чистим модель и, следовательно, представление (перенести перед if(isOpen))
+
+      if (db.isOpen())    // если в прошлый Open открывалась база
+      {
+        db.close();
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // db.remove("defaultConnection") надо добавлять (т.к. остается в списке соединений)?
+      }
+      else                // в прошлый раз база не открывалась
+      {} //действия если был открыт csv (будет пустым)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      isOpen = false;     // сбрасываем состояние
+    }
+
+    if (name.endsWith(".sqlite") || name.endsWith(".db"))
     {
       isOpen = true;
-      makeEnabled("csv");
-      openCsv(name);
+      makeEnabled("sql");
+      openSql(name);
     }
+    else
+      if (name.endsWith(".csv"))
+      {
+        isOpen = true;
+        makeEnabled("csv");
+        openCsv(name);
+      }
+  }
 }
 
 void MainWindow::openSql(const QString& name)
@@ -128,6 +138,13 @@ void MainWindow::openSql(const QString& name)
 
 void MainWindow::openCsv(const QString& name)
 {
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+}
+
+void MainWindow::convertToSql()
+{
+  dialog = new Dialog(this);
+  dialog->exec();
 }
 
 MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
@@ -145,6 +162,9 @@ MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
   view = new QTableView(this);
   view->setModel(&model);
   setCentralWidget(view);
+
+  dialog = new Dialog(this);
+  dialog->exec();
 }
 
 
