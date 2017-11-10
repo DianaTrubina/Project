@@ -24,8 +24,8 @@ class Dialog : public QDialog
     QDialogButtonBox* btns;
 
     QString whatTypeOfAttribute(const QString& str) const;
-    void fillFromHeader(const QSqlQueryModel& model);
-    void fillFromData(const QSqlQueryModel& model);
+    void fillFromHeader(const MyTableModel& model);
+    void fillFromData(const MyTableModel& model);
 
   public:
     Dialog(QWidget* parent = 0);

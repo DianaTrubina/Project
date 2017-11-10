@@ -25,9 +25,9 @@ class MyTableModel:public QAbstractTableModel
       return columns;
     }
 
-    QVariant data(const QModelIndex& index, int role) const;   // геттер данных
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;   // геттер данных
     bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole); //сеттер одной ячейки
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole);
     void clear();
     Qt::ItemFlags flags(const QModelIndex& index) const;

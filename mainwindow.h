@@ -46,9 +46,9 @@ class MainWindow: public QMainWindow
 
     QFileInfo fgfg;
 
-    const QSqlQueryModel& getModel() // тип модели !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    const MyTableModel& getModel() // тип модели !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     {
-      return model;
+      return csvModel;
     }
 
     QString whatFileName() const
