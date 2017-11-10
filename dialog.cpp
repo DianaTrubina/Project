@@ -4,7 +4,6 @@
 
 Dialog::Dialog(QWidget* parent):QDialog(parent)
 {
-
   setFixedSize(300, 200);
 
   setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint);
@@ -24,7 +23,6 @@ Dialog::Dialog(QWidget* parent):QDialog(parent)
   cmd->setText("...");
   edit->setReadOnly(true);
   combo->setEditable(true);
-
   combo->setInsertPolicy(QComboBox::NoInsert);
   combo->setEnabled(false);
 
@@ -62,6 +60,7 @@ void Dialog::actWithDb(const QString& name)
   if (db.isOpen())
   {
     db.close();
+    db.removeDatabase("tempDbConnection"); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     combo->clear();
     combo->setEnabled(false);
   }
@@ -91,14 +90,15 @@ void Dialog::convertToSQL()
     query.exec("DROP TABLE " + combo->currentText() + ";");
   }
 
-  const QSqlQueryModel& model = (qobject_cast<MainWindow*>(parent()))->getModel();
-  
-  fillHeader(model);
+  const QSqlQueryModel& model = (qobject_cast<MainWindow*>(parent()))->getModel(); // модель !!!!!!!!!!!!!!!!!!!!!!!!
+
+  fillFromHeader(model);
 
   if (model.rowCount())
-    fillData(model);
+    fillFromData(model);
 
   db.close();
+  db.removeDatabase("tempDbConnection"); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   accept(); // вызов accept(), т.к. нажимали OK
 }
 
@@ -116,7 +116,7 @@ QString Dialog::whatTypeOfAttribute(const QString& str) const
   return "TEXT";
 }
 
-void Dialog::fillHeader(const QSqlQueryModel& model)
+void Dialog::fillFromHeader(const QSqlQueryModel& model) // модель !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 {
   QSqlQuery query(db);
   QString str = "CREATE TABLE " + combo->currentText() + " (";
@@ -138,7 +138,7 @@ void Dialog::fillHeader(const QSqlQueryModel& model)
   query.exec(str);
 }
 
-void Dialog::fillData(const QSqlQueryModel& model)
+void Dialog::fillFromData(const QSqlQueryModel& model)   // модель !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 {
   QString str;
   QSqlQuery query(db);

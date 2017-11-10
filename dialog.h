@@ -6,6 +6,8 @@
 #include <QList>
 #include <QString>
 
+#include "mytablemodel.h"
+
 class Dialog : public QDialog
 {
   Q_OBJECT
@@ -22,8 +24,8 @@ class Dialog : public QDialog
     QDialogButtonBox* btns;
 
     QString whatTypeOfAttribute(const QString& str) const;
-    void fillHeader(const QSqlQueryModel& model);
-    void fillData(const QSqlQueryModel& model);
+    void fillFromHeader(const QSqlQueryModel& model);
+    void fillFromData(const QSqlQueryModel& model);
 
   public:
     Dialog(QWidget* parent = 0);
