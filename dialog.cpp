@@ -117,9 +117,7 @@ void Dialog::fillFromHeader(const MyTableModel& model)
   QSqlQuery query(db);
   QString str = "CREATE TABLE " + combo->currentText() + " (";
 
- // str += model.headerData(0, Qt::Horizontal).toString() + " INTEGER NOT NULL PRIMARY KEY, "; // !!!!!!!!!!!!!!!!!!!!!!!!
-
-  for (int i = 0; i < model.columnCount(); i++) // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  for (int i = 0; i < model.columnCount(); i++)
   {
     str += model.headerData(i, Qt::Horizontal).toString() + " ";
 

@@ -141,25 +141,24 @@ void MainWindow::openCsv(const QString& name)
   QStringList lstheaders;
   processRecord(file, lstheaders);
 
-  csvModel.insertColumns(0, lstheaders.size()); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  csvModel.insertColumns(0, lstheaders.size());
 
   for (int j = 0; j < lstheaders.size(); ++j)
-    csvModel.setHeaderData(j, Qt::Horizontal, lstheaders.at(j)); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    csvModel.setHeaderData(j, Qt::Horizontal, lstheaders.at(j));
 
-  qDebug() << lstheaders.size() << csvModel.rowCount() << csvModel.columnCount(); // !!!!!!!!!!!!!!!!!!!!!!!!!!
+qDebug() << lstheaders.size() << csvModel.rowCount() << csvModel.columnCount(); // !!!!!!!!!!!!!!!!!!!!!!!!!!
 
   int rows = 0;
-  while (!file.atEnd())
+  while (!file.atEnd()) // если в файлы была только строка шапки, то сюда даже не зайдем
   {
     processRecord(file, lstheaders);
-
-    csvModel.insertRows(rows, 1); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    csvModel.insertRows(rows, 1);
 
     for (int j = 0; j < lstheaders.size(); ++j)
     {
-      bool kk = csvModel.setData(csvModel.index(rows, j), lstheaders.at(j)); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      bool kk = csvModel.setData(csvModel.index(rows, j), lstheaders.at(j));
 
-      qDebug() << lstheaders << kk << rows; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+qDebug() << lstheaders << kk << rows; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
 
     ++rows;
@@ -168,10 +167,10 @@ void MainWindow::openCsv(const QString& name)
   file.close();
 }
 
-void MainWindow::processRecord(QFile& file, QStringList& lstheaders)
+QString MainWindow::handleFile(QFile& file)
 {
-  int quoteCount = 1;                // количество " в строке
-  QString strheaders;                // первая строка csv
+  int quoteCount = 1;                // количество " в строке. 1 - чтобы зайти в цикл
+  QString strRecordLine;                // строка таблицы
 
   while (quoteCount % 2 != 0)        // кавычек нечетное кол-во (случай: xxx,"x \n x",xxx)
   {
@@ -179,32 +178,39 @@ void MainWindow::processRecord(QFile& file, QStringList& lstheaders)
     temp.remove("\r\n");
     quoteCount = temp.count('\"');   // сколько раз встретилась "
 
-    if (strheaders.isEmpty())
-      strheaders = temp;
+    if (strRecordLine.isEmpty())
+      strRecordLine = temp;
     else    // strheaders += temp;
-     strheaders += '\n' + temp;     // не уверен, что нужно \n !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  //  qDebug() << strheaders; //________________________________________________________________________________
+      strRecordLine += '\n' + temp;     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
 
-  lstheaders = strheaders.split(',');  // разбили строку по , на поля
+  return strRecordLine;
+}
+
+void MainWindow::handleString(QStringList& lstRecordLine)
+{
+  int quoteCount = 0;
   int i = 0;
 
- // qDebug() << lstheaders; //____________________________________________________________________________________
-
-  while (i != lstheaders.size())          // пока не пройдем весь список
+  while (i < lstRecordLine.size())          // пока не пройдем весь список
   {
-    QString temp = lstheaders.at(i);      // получили текущую строку
+    QString temp = lstRecordLine.at(i);      // получили текущее слово
     quoteCount = temp.count('\"');        // сколько раз встретилась "
 
     if (quoteCount %2 != 0)
     {
-      lstheaders.replace(i+1, temp+','+lstheaders.at(i+1));  // сливаю 2 строки. ВОЗМОЖНА ОШИБКА i+1=size!!!!!!!!!!!!
-      lstheaders.removeAt(i);                                // надеюсь сработает
+      lstRecordLine.replace(i, temp+','+lstRecordLine.at(i+1));  // сливаю 2 строки. ВОЗМОЖНА ОШИБКА i+1=size!!!!!!!
+      lstRecordLine.removeAt(i+1);                               // надеюсь сработает
     }
     else
       ++i;
   }
+}
+
+void MainWindow::processRecord(QFile& file, QStringList& lstheaders)
+{
+  lstheaders = handleFile(file).split(',');  // разбили строку по , на поля
+  handleString(lstheaders);
 
   QString temp = lstheaders.at(0);               // смотрим самую первую строку (поле записи)
   if (temp.at(0) == '\"')                        // смотрим его первый символ
