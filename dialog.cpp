@@ -90,7 +90,7 @@ void Dialog::convertToSQL()
     query.exec("DROP TABLE " + combo->currentText() + ";");
   }
 
-  const QSqlQueryModel& model = (qobject_cast<MainWindow*>(parent()))->getModel(); // модель !!!!!!!!!!!!!!!!!!!!!!!!
+  const MyTableModel& model = (qobject_cast<MainWindow*>(parent()))->getModel(); // модель !!!!!!!!!!!!!!!!!!!!!!!!
 
   fillFromHeader(model);
 
@@ -104,7 +104,7 @@ void Dialog::convertToSQL()
 
 QString Dialog::whatTypeOfAttribute(const QString& str) const
 {
-  QRegExp reg("^\\-?\\d+\\.?\\d+$");
+  QRegExp reg("^\\-?\\d+\\.+\\d+$");
 
   if (str.contains(reg))
      return "REAL";
@@ -116,7 +116,7 @@ QString Dialog::whatTypeOfAttribute(const QString& str) const
   return "TEXT";
 }
 
-void Dialog::fillFromHeader(const QSqlQueryModel& model) // модель !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+void Dialog::fillFromHeader(const MyTableModel& model) // модель !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 {
   QSqlQuery query(db);
   QString str = "CREATE TABLE " + combo->currentText() + " (";
@@ -135,19 +135,31 @@ void Dialog::fillFromHeader(const QSqlQueryModel& model) // модель !!!!!!!
   }
 
   str += ");";
-  query.exec(str);
+  bool k = query.exec(str);
+
+  qDebug() << str << k; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!
 }
 
-void Dialog::fillFromData(const QSqlQueryModel& model)   // модель !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+void Dialog::fillFromData(const MyTableModel& model)   // модель !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 {
   QString str;
   QSqlQuery query(db);
 
   db.transaction();
 
-  for (int i = 0; i < model.rowCount(); i++)
+  for (int i = 0; i < model.rowCount(); ++i)
   {
-    str = "INSERT INTO " + combo->currentText() + " VALUES (";
+    str = "INSERT INTO " + combo->currentText() + " (";
+
+    for (int j = 0; j < model.columnCount(); ++j)
+    {
+      str += model.headerData(j,Qt::Horizontal).toString();
+
+      if (j != model.columnCount() - 1)
+        str += ", ";
+    }
+
+    str+= ") VALUES (";
 
     for (int j = 0; j < model.columnCount(); j++)
     {
@@ -158,7 +170,9 @@ void Dialog::fillFromData(const QSqlQueryModel& model)   // модель !!!!!!!
     }
 
     str += ");";
-    query.exec(str);
+    bool k = query.exec(str);
+
+    qDebug() << str << k << db.lastError().text(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!
   }
 
   db.commit();

@@ -27,7 +27,7 @@ bool MyTableModel::setData(const QModelIndex& index, const QVariant& value, int 
 
 QVariant MyTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (role !=Qt::DisplayRole)
+  if (role != Qt::DisplayRole)
     return QVariant();
   else
     return (orientation == Qt::Horizontal) ? headers[section] : QString::number(section + 1);
