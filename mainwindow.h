@@ -39,7 +39,12 @@ class MainWindow: public QMainWindow
     void createConnections();
     void openSql(const QString& name);
     void openCsv(const QString& name);
+
+
     void processRecord(QFile& file, QStringList& lstheaders);
+    QString handleFile(QFile& file);
+    void handleString(QStringList& lstRecordLine);
+
 
   public:
     MainWindow(QWidget* parent = 0);
