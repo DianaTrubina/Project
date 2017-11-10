@@ -57,10 +57,10 @@ void Dialog::aqcuireDbName()
 
 void Dialog::actWithDb(const QString& name)
 {
-  if (db.isOpen())
+  if (db.isOpen()) // если 2 раза полезли в выбор базы
   {
     db.close();
-    db.removeDatabase("tempDbConnection"); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    db.removeDatabase("tempDbConnection");
     combo->clear();
     combo->setEnabled(false);
   }
@@ -75,11 +75,7 @@ void Dialog::actWithDb(const QString& name)
   if (! lst.empty())        // если в базе есть таблицы
     combo->addItems(lst);
   else                      // база пустая
-  {
-   // combo->addItem("test12345");
    combo->addItem((qobject_cast<MainWindow*>(parent()))->whatFileName());
-      // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  }
 }
 
 void Dialog::convertToSQL()
@@ -90,7 +86,7 @@ void Dialog::convertToSQL()
     query.exec("DROP TABLE " + combo->currentText() + ";");
   }
 
-  const MyTableModel& model = (qobject_cast<MainWindow*>(parent()))->getModel(); // модель !!!!!!!!!!!!!!!!!!!!!!!!
+  const MyTableModel& model = (qobject_cast<MainWindow*>(parent()))->getModel();
 
   fillFromHeader(model);
 
@@ -98,7 +94,7 @@ void Dialog::convertToSQL()
     fillFromData(model);
 
   db.close();
-  db.removeDatabase("tempDbConnection"); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  db.removeDatabase("tempDbConnection");
   accept(); // вызов accept(), т.к. нажимали OK
 }
 
@@ -116,19 +112,30 @@ QString Dialog::whatTypeOfAttribute(const QString& str) const
   return "TEXT";
 }
 
-void Dialog::fillFromHeader(const MyTableModel& model) // модель !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+void Dialog::fillFromHeader(const MyTableModel& model)
 {
   QSqlQuery query(db);
   QString str = "CREATE TABLE " + combo->currentText() + " (";
 
-  for (int i = 0; i < model.columnCount(); i++)
-  {
-    str += model.headerData(i, Qt::Horizontal).toString() + ' ';
+ // str += model.headerData(0, Qt::Horizontal).toString() + " INTEGER NOT NULL PRIMARY KEY, "; // !!!!!!!!!!!!!!!!!!!!!!!!
 
-    if (model.rowCount()) // если в модели есть данные, а не только заголовок
-      str += whatTypeOfAttribute(model.data(model.index(0, i)).toString()); // тип поля
+  for (int i = 0; i < model.columnCount(); i++) // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  {
+    str += model.headerData(i, Qt::Horizontal).toString() + " ";
+
+    if (model.rowCount()) // если в модели есть данные, а не только заголовок. таблица - просто шапка без строк
+    {
+      QString tmp = whatTypeOfAttribute(model.data(model.index(0, i)).toString()); // тип поля
+      str += tmp;
+      columnTypes.append(tmp);
+qDebug() << columnTypes;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    }
     else
+    {
       str += "TEXT";      // если модель пуста, то в базе все поля будут TEXT
+      columnTypes.append("TEXT");
+qDebug() << columnTypes;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    }
 
     if (i != model.columnCount() - 1)
       str += ", ";
@@ -137,10 +144,10 @@ void Dialog::fillFromHeader(const MyTableModel& model) // модель !!!!!!!!!
   str += ");";
   bool k = query.exec(str);
 
-  qDebug() << str << k; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!
+qDebug() << query.lastQuery() << k; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!
 }
 
-void Dialog::fillFromData(const MyTableModel& model)   // модель !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+void Dialog::fillFromData(const MyTableModel& model)
 {
   QString str;
   QSqlQuery query(db);
@@ -163,16 +170,19 @@ void Dialog::fillFromData(const MyTableModel& model)   // модель !!!!!!!!!
 
     for (int j = 0; j < model.columnCount(); j++)
     {
-      str += model.data(model.index(i, j)).toString(); // вставляем как строку, база сама преобразует
+      if (columnTypes.at(j) == "TEXT")
+        str +="\'" + model.data(model.index(i, j)).toString() + "\'"; // вставляем как строку, база сама преобразует
+      else
+        str +=model.data(model.index(i, j)).toString(); // вставляем как строку, база сама преобразует
 
       if (j != model.columnCount() - 1)
         str += ", ";
     }
 
-    str += ");";
+    str += ");";  // вернуть ; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     bool k = query.exec(str);
 
-    qDebug() << str << k << db.lastError().text(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!
+qDebug() << query.lastQuery() << k << query.lastError().text(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!
   }
 
   db.commit();
