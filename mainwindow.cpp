@@ -90,10 +90,10 @@ void MainWindow::slotOpen()
 {
   QString name = QFileDialog::getOpenFileName(this, "Explorer", "", "SQLite files(*.sqlite *.db);;CSV files(*.csv)");
 
-  currentFile = QFileInfo(name);
-
   if (name != "")         // если реально выбрали файл, а не нажали Cancel
   {
+    currentFile = QFileInfo(name);
+
     if (isOpen)           // если нажали Open 2 раза подряд
     {
       makeDisabled();     // приводим видимость виджетов в исходное "пустое" состояние

@@ -15,6 +15,7 @@ class Dialog : public QDialog
   private:
     QSqlDatabase db;
     QStringList lst;
+    QStringList columnTypes;
 
     QGroupBox* gbx1;
     QGroupBox* gbx2;
