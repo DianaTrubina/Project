@@ -5,6 +5,11 @@
 #include <QtWidgets>        //qtableview
 #include <QtSql>
 #include <QFileInfo>
+#include <QFile>
+#include <QStringList>
+#include <QString>
+
+#include "mytablemodel.h"
 
 class Dialog;
 
@@ -17,6 +22,7 @@ class MainWindow: public QMainWindow
 
     QSqlDatabase db;          // соединение с бд
     QSqlQueryModel model;
+    MyTableModel csvModel;
 
     QMenuBar* menuBar;
     QToolBar* toolBar;
@@ -33,13 +39,14 @@ class MainWindow: public QMainWindow
     void createConnections();
     void openSql(const QString& name);
     void openCsv(const QString& name);
+    void processRecord(QFile& file, QStringList& lstheaders);
 
   public:
     MainWindow(QWidget* parent = 0);
 
     QFileInfo fgfg;
 
-    const QSqlQueryModel& getModel()
+    const QSqlQueryModel& getModel() // тип модели !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     {
       return model;
     }
