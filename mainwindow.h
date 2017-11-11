@@ -40,8 +40,8 @@ class MainWindow: public QMainWindow
     void openSql(const QString& name);
     void openCsv(const QString& name);
 
-    void processRecord(QFile& file, QStringList& lstheaders);
-    QString handleFile(QFile& file);
+    void processRecord(QFile& file, QStringList& lstRecordLine);
+    QString handleFileString(QFile& file);
     void handleString(QStringList& lstRecordLine);
 
     void handleWordToCsv(QFile &file, QString word);

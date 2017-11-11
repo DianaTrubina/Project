@@ -79,11 +79,9 @@ void MainWindow::setModelForTable(const QString & name)
   if (!(name == "")) // чтобы не было реакции при очистке через makeDisabled()
   {
     QSqlQuery query(db);
-    bool kk = query.exec("SELECT * FROM " + name + ";");
+    query.exec("SELECT * FROM " + name + ";");
 
     model.setQuery(query);
-
-    statusBar()->showMessage(QString("%1, %2, %3").arg(query.isActive()).arg(query.isSelect()).arg(kk));
   }
 }
 
@@ -99,7 +97,7 @@ void MainWindow::slotOpen()
     {
       makeDisabled();     // приводим видимость виджетов в исходное "пустое" состояние
       model.clear();      // чистим модель и, следовательно, представление
-      csvModel.clear(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      csvModel.clear();
 
       if (db.isOpen())    // если в прошлый Open открывалась база
         db.close();
@@ -139,27 +137,27 @@ void MainWindow::openCsv(const QString& name)
   QFile file(name);
   file.open(QIODevice::ReadOnly);
 
-  QStringList lstheaders;
-  processRecord(file, lstheaders);
+  QStringList fields; // в первом случае - заголовки столбцов, во втором - поля записи
+  processRecord(file, fields);
 
-  csvModel.insertColumns(0, lstheaders.size());
+  csvModel.insertColumns(0, fields.size());
 
-  for (int j = 0; j < lstheaders.size(); ++j)
-    csvModel.setHeaderData(j, Qt::Horizontal, lstheaders.at(j));
+  for (int j = 0; j < fields.size(); ++j)
+    csvModel.setHeaderData(j, Qt::Horizontal, fields.at(j));
 
-qDebug() << lstheaders.size() << csvModel.rowCount() << csvModel.columnCount(); // !!!!!!!!!!!!!!!!!!!!!!!!!!
+// qDebug() << lstheaders.size() << csvModel.rowCount() << csvModel.columnCount(); // !!!!!!!!!!!!!!!!!!!!!!!!!!
 
   int rows = 0;
   while (!file.atEnd()) // если в файле была только строка шапки, то сюда даже не зайдем
   {
-    processRecord(file, lstheaders);
+    processRecord(file, fields);
     csvModel.insertRows(rows, 1);
 
-    for (int j = 0; j < lstheaders.size(); ++j)
+    for (int j = 0; j < fields.size(); ++j)
     {
-      bool kk = csvModel.setData(csvModel.index(rows, j), lstheaders.at(j));
+      csvModel.setData(csvModel.index(rows, j), fields.at(j));
 
-qDebug() << lstheaders << kk << rows; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// qDebug() << lstheaders << rows; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
 
     ++rows;
@@ -168,15 +166,23 @@ qDebug() << lstheaders << kk << rows; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   file.close();
 }
 
-QString MainWindow::handleFile(QFile& file)
+QString MainWindow::handleFileString(QFile& file)
 {
   int quoteCount = 1;                // количество " в строке. 1 - чтобы зайти в цикл
-  QString strRecordLine;                // строка таблицы
+  QString strRecordLine;             // строка таблицы
 
   while (quoteCount % 2 != 0)        // кавычек нечетное кол-во (случай: xxx,"x \n x",xxx)
   {
     QString temp(file.readLine());   // считывает до первого \n
+
+qDebug() << '1' << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     temp.remove("\r\n");
+    if (temp.at(temp.size()-1) == '\n')
+      temp.chop(1);
+
+//qDebug() << '2' << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     quoteCount = temp.count('\"');   // сколько раз встретилась "
 
     if (strRecordLine.isEmpty())
@@ -185,57 +191,68 @@ QString MainWindow::handleFile(QFile& file)
       strRecordLine += '\n' + temp;     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
 
+qDebug() << '3' << strRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   return strRecordLine;
 }
 
 void MainWindow::handleString(QStringList& lstRecordLine)
 {
   int quoteCount = 0;
-  int i = 0;
+  QStringList::iterator cur = lstRecordLine.begin();
 
-  while (i < lstRecordLine.size())          // пока не пройдем весь список
+  while (cur != lstRecordLine.end())          // пока не пройдем весь список
   {
-    QString temp = lstRecordLine.at(i);      // получили текущее слово
+    QString temp = *cur;                  // получили текущее слово
     quoteCount = temp.count('\"');        // сколько раз встретилась "
 
     if (quoteCount %2 != 0)
     {
-      lstRecordLine.replace(i, temp+','+lstRecordLine.at(i+1));  // сливаю 2 строки. ВОЗМОЖНА ОШИБКА i+1=size!!!!!!!
-      lstRecordLine.removeAt(i+1);                               // надеюсь сработает
+      cur->clear();
+      (*cur) = temp + ',' + (*(cur+1)); // сливаю 2 строки.  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     // lstRecordLine.replace(i, temp+','+lstRecordLine.at(i+1));
+      lstRecordLine.erase(cur + 1);  // надеюсь сработает   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
     else
-      ++i;
+      ++cur;
   }
 }
 
-void MainWindow::processRecord(QFile& file, QStringList& lstheaders)
+void MainWindow::processRecord(QFile& file, QStringList& lstRecordLine)
 {
-  lstheaders = handleFile(file).split(',');  // разбили строку по , на поля
-  handleString(lstheaders);
+  lstRecordLine = handleFileString(file).split(',');  // разбили строку по , на поля
+  handleString(lstRecordLine);
 
-  QString temp = lstheaders.at(0);               // смотрим самую первую строку (поле записи)
+  QString temp = lstRecordLine.at(0);               // смотрим самое первое слово
   if (temp.at(0) == '\"')                        // смотрим его первый символ
   {
     temp.remove(0, 1);                           // удаляем, если это "
-    lstheaders.replace(0, temp);
+    lstRecordLine.replace(0, temp);
   }
 
-  temp = lstheaders.at(lstheaders.size()-1);   // смотрим самую последнюю строку (поле записи)
+  temp = lstRecordLine.at(lstRecordLine.size()-1);   // смотрим самое последнее слову
   if (temp.at(temp.size() - 1) == '\"')          // смотрим ее последний символ
   {
     temp.chop(1);                                // удаляем, если это "
-    lstheaders.replace(temp.size()-1, temp);
+    lstRecordLine.replace(temp.size()-1, temp);
   }
 
-  for (int i = 0; i < lstheaders.size(); ++i)    // идем по всем словам
+  for (int i = 0; i < lstRecordLine.size(); ++i)    // идем по всем словам
   {
-    temp = lstheaders.at(i);
+    temp = lstRecordLine.at(i);
+    QString::iterator cur = temp.begin();
 
-    for (int j = 0; j < temp.size(); ++j)
-      if ((temp.at(j) == '\"') && (temp.at(j+1) == '\"')) // в слове может быть только от двух кавычек подряд
+    int j = 0;
+    while (cur != temp.end())
+    {
+      if ((*cur == '\"') && (*(cur+1) == '\"')) // в слове может быть только от двух кавычек подряд
         temp.remove(j+1, 1);
 
-    lstheaders.replace(i, temp);
+      ++cur;
+      ++j;
+    }
+
+    lstRecordLine.replace(i, temp);
   }
 }
 
