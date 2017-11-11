@@ -39,10 +39,11 @@ void MainWindow::createConnections()
   QAction* button = menuBar->actions().at(0)->menu()->actions().at(0);   // open
   connect(button, SIGNAL(triggered(bool)), this, SLOT(slotOpen()));
 
+  button = menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(0); // to CSV
+  connect(button, SIGNAL(triggered(bool)), this, SLOT(convertToCsv()));
+
   button = menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1); // to SQLite
   connect(button, SIGNAL(triggered(bool)), this, SLOT(convertToSql()));
-
-  // connect для convert to CSV!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   button = menuBar->actions().at(0)->menu()->actions().at(3);           // exit application
   connect(button, SIGNAL(triggered(bool)), qApp, SLOT(quit()));
@@ -149,7 +150,7 @@ void MainWindow::openCsv(const QString& name)
 qDebug() << lstheaders.size() << csvModel.rowCount() << csvModel.columnCount(); // !!!!!!!!!!!!!!!!!!!!!!!!!!
 
   int rows = 0;
-  while (!file.atEnd()) // если в файлы была только строка шапки, то сюда даже не зайдем
+  while (!file.atEnd()) // если в файле была только строка шапки, то сюда даже не зайдем
   {
     processRecord(file, lstheaders);
     csvModel.insertRows(rows, 1);
@@ -214,22 +215,27 @@ void MainWindow::processRecord(QFile& file, QStringList& lstheaders)
 
   QString temp = lstheaders.at(0);               // смотрим самую первую строку (поле записи)
   if (temp.at(0) == '\"')                        // смотрим его первый символ
+  {
     temp.remove(0, 1);                           // удаляем, если это "
+    lstheaders.replace(0, temp);
+  }
 
-  temp = lstheaders.at(lstheaders.size() - 1);   // смотрим самую последнюю строку (поле записи)
+  temp = lstheaders.at(lstheaders.size()-1);   // смотрим самую последнюю строку (поле записи)
   if (temp.at(temp.size() - 1) == '\"')          // смотрим ее последний символ
+  {
     temp.chop(1);                                // удаляем, если это "
+    lstheaders.replace(temp.size()-1, temp);
+  }
 
-  for (int i = 0; i < lstheaders.size(); ++i)    // идем по всем строкам
+  for (int i = 0; i < lstheaders.size(); ++i)    // идем по всем словам
   {
     temp = lstheaders.at(i);
-    int quotes = temp.indexOf("\"\"");;          // есть ли в строке ""?
 
-    while (quotes != -1)                         // в строке есть ""
-    {
-      temp.remove(quotes, 1);                    // заменяем на ", если нашли
-      quotes = temp.indexOf("\"\"");
-    }
+    for (int j = 0; j < temp.size(); ++j)
+      if ((temp.at(j) == '\"') && (temp.at(j+1) == '\"')) // в слове может быть только от двух кавычек подряд
+        temp.remove(j+1, 1);
+
+    lstheaders.replace(i, temp);
   }
 }
 
@@ -237,6 +243,66 @@ void MainWindow::convertToSql()
 {
   dialog = new Dialog(this);
   dialog->exec();
+}
+
+void MainWindow::convertToCsv()
+{
+  QString dirFile = currentFile.absolutePath() + QDir::separator() +tablesBox->currentText();
+  QString name = QFileDialog::getSaveFileName(this, "Explorer", dirFile, "CSV files(*.csv)");
+
+  if (name != "")
+  {
+    QFile file(name);
+    file.open(QIODevice::WriteOnly | QIODevice::Truncate); // транкейт !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    for(int j = 0; j < model.columnCount(); ++j)
+    {
+      handleWordToCsv(file, model.headerData(j, Qt::Horizontal).toString());
+
+      if (j != model.columnCount() - 1)
+        file.putChar(',');
+      else
+        file.putChar('\n'); // блокнот не может перевести на новую строку !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    }
+
+    for (int i = 0; i < model.rowCount(); ++i)
+    {
+      for (int j = 0; j < model.columnCount(); ++j)
+      {
+        handleWordToCsv(file, model.data(model.index(i, j)).toString());
+
+        if (j != model.columnCount() - 1)
+          file.putChar(',');
+      }
+
+      if (i != model.rowCount() - 1)
+        file.putChar('\n');
+    }
+
+    file.close();
+  }
+}
+
+void MainWindow::handleWordToCsv(QFile& file, QString word)
+{
+  bool flagSymbols = false;
+
+  if (word.contains(QRegExp("[\\\",\\\n]")))   // в строке есть особые символы
+  {
+    file.putChar('\"');
+    flagSymbols = true;
+  }
+
+  for(int i = 0; i < word.size(); ++i)
+  {
+    file.putChar(word.at(i).toLatin1());
+
+    if (word.at(i) == '\"')                               // попали на кавычку
+      file.putChar(word.at(i).toLatin1());                // дублируем ее
+  }
+
+  if (flagSymbols)
+    file.putChar('\"');
 }
 
 MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)

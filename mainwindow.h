@@ -40,16 +40,14 @@ class MainWindow: public QMainWindow
     void openSql(const QString& name);
     void openCsv(const QString& name);
 
-
     void processRecord(QFile& file, QStringList& lstheaders);
     QString handleFile(QFile& file);
     void handleString(QStringList& lstRecordLine);
 
+    void handleWordToCsv(QFile &file, QString word);
 
   public:
     MainWindow(QWidget* parent = 0);
-
-    QFileInfo fgfg;
 
     const MyTableModel& getModel() // тип модели !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     {
@@ -65,6 +63,7 @@ class MainWindow: public QMainWindow
     void slotOpen();                               // открыть проводник
     void setModelForTable(const QString& name);
     void convertToSql();
+    void convertToCsv();
 };
 
 
