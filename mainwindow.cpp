@@ -175,13 +175,13 @@ QString MainWindow::handleFileString(QFile& file)
   {
     QString temp(file.readLine());   // считывает до первого \n
 
-qDebug() << '1' << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+qDebug() << "1  | " << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     temp.remove("\r\n");
     if (temp.at(temp.size()-1) == '\n')
       temp.chop(1);
 
-//qDebug() << '2' << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//qDebug() << "2  | " << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     quoteCount = temp.count('\"');   // сколько раз встретилась "
 
@@ -191,13 +191,15 @@ qDebug() << '1' << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       strRecordLine += '\n' + temp;     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   }
 
-qDebug() << '3' << strRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+qDebug() << "3  | " << strRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   return strRecordLine;
 }
 
 void MainWindow::handleString(QStringList& lstRecordLine)
 {
+qDebug() << "111| " << lstRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   int quoteCount = 0;
   QStringList::iterator cur = lstRecordLine.begin();
 
@@ -216,6 +218,8 @@ void MainWindow::handleString(QStringList& lstRecordLine)
     else
       ++cur;
   }
+
+qDebug() << "222| " <<  lstRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 void MainWindow::processRecord(QFile& file, QStringList& lstRecordLine)
@@ -224,7 +228,7 @@ void MainWindow::processRecord(QFile& file, QStringList& lstRecordLine)
   handleString(lstRecordLine);
 
   QString temp = lstRecordLine.at(0);               // смотрим самое первое слово
-  if (temp.at(0) == '\"')                        // смотрим его первый символ
+/*  if (temp.at(0) == '\"')                        // смотрим его первый символ
   {
     temp.remove(0, 1);                           // удаляем, если это "
     lstRecordLine.replace(0, temp);
@@ -235,11 +239,19 @@ void MainWindow::processRecord(QFile& file, QStringList& lstRecordLine)
   {
     temp.chop(1);                                // удаляем, если это "
     lstRecordLine.replace(temp.size()-1, temp);
-  }
+  } */
 
   for (int i = 0; i < lstRecordLine.size(); ++i)    // идем по всем словам
   {
     temp = lstRecordLine.at(i);
+
+    if ((temp.at(0) == '\"') && (temp.at(temp.size()-1) == '\"'))
+    {
+      temp.remove(0, 1);
+      temp.chop(1);
+     // lstRecordLine.replace(i, temp);
+    }
+
     QString::iterator cur = temp.begin();
 
     int j = 0;
