@@ -6,6 +6,7 @@
 #include <QString>
 
 #include "mainengine.h"
+#include "dialog.h"
 
 class Dialog;
 
@@ -30,6 +31,9 @@ class MainWindow: public QMainWindow
 
   public:
     MainWindow(QWidget* parent = 0);
+
+    const QFileInfo& whatCurrentFile() {return guts.getCurrentFile();}
+    const MyTableModel& getConstCsvModel() {return guts.getConstLinkCsvModel();}
 
   public slots:
     void slotOpen();                               // открыть проводник

@@ -1,7 +1,5 @@
-#include "mainwindow.h"
-#include "dialog.h"
-
 #include <QFileDialog>
+#include "mainwindow.h"
 
 void MainWindow::createMenuBar(MainWindow* parent) // OK
 {
@@ -119,62 +117,11 @@ void MainWindow::convertToSql() // OK
 
 void MainWindow::convertToCsv()
 {
-  QString dirFile = currentFile.absolutePath() + QDir::separator() +tablesBox->currentText();
+  QString dirFile = whatCurrentFile().absolutePath() + QDir::separator() + tablesBox->currentText();
   QString name = QFileDialog::getSaveFileName(this, "Explorer", dirFile, "CSV files(*.csv)");
 
   if (name != "")
-  {
-    QFile file(name);
-    file.open(QIODevice::WriteOnly | QIODevice::Truncate); // транкейт !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    for(int j = 0; j < model.columnCount(); ++j)
-    {
-      handleWordToCsv(file, model.headerData(j, Qt::Horizontal).toString());
-
-      if (j != model.columnCount() - 1)
-        file.putChar(',');
-      else
-        file.putChar('\n'); // блокнот не может перевести на новую строку !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    }
-
-    for (int i = 0; i < model.rowCount(); ++i)
-    {
-      for (int j = 0; j < model.columnCount(); ++j)
-      {
-        handleWordToCsv(file, model.data(model.index(i, j)).toString());
-
-        if (j != model.columnCount() - 1)
-          file.putChar(',');
-      }
-
-      if (i != model.rowCount() - 1)
-        file.putChar('\n');
-    }
-
-    file.close();
-  }
-}
-
-void MainWindow::handleWordToCsv(QFile& file, QString word)
-{
-  bool flagSymbols = false;
-
-  if (word.contains(QRegExp("[\\\",\\\n]")))   // в строке есть особые символы
-  {
-    file.putChar('\"');
-    flagSymbols = true;
-  }
-
-  for(int i = 0; i < word.size(); ++i)
-  {
-    file.putChar(word.at(i).toLatin1());
-
-    if (word.at(i) == '\"')                               // попали на кавычку
-      file.putChar(word.at(i).toLatin1());                // дублируем ее
-  }
-
-  if (flagSymbols)
-    file.putChar('\"');
+    guts.convertToCsv(name);
 }
 
 MainWindow::MainWindow(QWidget* parent):QMainWindow(parent) // OK

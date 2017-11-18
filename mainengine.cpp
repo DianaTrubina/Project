@@ -1,4 +1,8 @@
+#include <QFile>
+#include <QStringList>
+
 #include "mainengine.h"
+#include "csvstream.h"
 
 MainEngine::MainEngine(QObject* parent):QObject(parent)
 {
@@ -10,7 +14,6 @@ void MainEngine::fillSqlModel(const QString& name)
   {
     QSqlQuery query(db);
     query.exec("SELECT * FROM " + name + ";");
-
     model.setQuery(query);
   }
 }
@@ -43,29 +46,53 @@ void MainEngine::openCsv(const QString& name)
   isOpen = true;
   currentFile = QFileInfo(name);
 
-  QFile file(name);             // !!!!!!!!!!!!!!!!!!!!!   заменится на CsvStream
-  file.open(QIODevice::ReadOnly);// !!!!!!!!!!!!!!!!!!!!!!
+  CsvStream csv(name, this); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  csv.open(QIODevice::ReadOnly); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  QStringList fields;               // в первом случае - заголовки столбцов, во втором - поля записи
-  processRecord(file, fields);// !!!!!!!!!!!!!!!!!!!!!!!!!!!
-  csvModel.insertColumns(0, fields.size());
+  QStringList line = csv.readLine(); // в первом случае - заголовки столбцов, во втором - поля записи !!!!!!!!!!
+  csvModel.insertColumns(0, line.size());
 
-  for (int j = 0; j < fields.size(); ++j)
-    csvModel.setHeaderData(j, Qt::Horizontal, fields.at(j));
+  for (int j = 0; j < line.size(); ++j)
+    csvModel.setHeaderData(j, Qt::Horizontal, line.at(j));
 
   int rows = 0;
-  while (!file.atEnd()) // если в файле была только строка шапки, то сюда даже не зайдем
+  while (!csv.atEnd()) // если в файле была только строка шапки, то сюда даже не зайдем !!!!!!!!!!!!!
   {
-    processRecord(file, fields); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    line = csv.readLine();     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     csvModel.insertRows(rows, 1);
 
-    for (int j = 0; j < fields.size(); ++j)
-      csvModel.setData(csvModel.index(rows, j), fields.at(j));
+    for (int j = 0; j < line.size(); ++j)
+      csvModel.setData(csvModel.index(rows, j), line.at(j));
 
     ++rows;
   }
 
-  file.close(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  csv.close(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+}
+
+void MainEngine::convertToCsv(const QString& name)
+{
+  CsvStream csv(name, this); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  csv.open(QIODevice::WriteOnly | QIODevice::Truncate); // транкейт !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  QStringList lstLine;
+
+  for(int j = 0; j < model.columnCount(); ++j)
+    lstLine.append(model.headerData(j, Qt::Horizontal).toString());
+
+  csv.writeLine(lstLine);
+
+  for (int i = 0; i < model.rowCount(); ++i)
+  {
+    lstLine.clear();
+
+    for (int j = 0; j < model.columnCount(); ++j)
+      lstLine.append(model.data(model.index(i, j)).toString());
+
+    csv.writeLine(lstLine);
+  }
+
+  csv.close(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 

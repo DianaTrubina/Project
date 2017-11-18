@@ -20,23 +20,20 @@ class MainEngine:public QObject
     QSqlQueryModel model;
     MyTableModel csvModel;
 
-
-
-    void handleWordToCsv(QFile &file, QString word); // перенести в CsvEngine
-
-
   public:
     MainEngine(QObject* parent = 0);
 
-    const MyTableModel& whatCsvModel() {return csvModel;} // скорее всего совсем уберу
+    const MyTableModel& getConstLinkCsvModel() {return csvModel;}
     MyTableModel* getCsvModel() {return &csvModel;}
     QSqlQueryModel* getSqlModel() {return &model;}
-    QString getCurrentFileName() const {return currentFile.baseName();}
+    const QFileInfo& getCurrentFile() const {return currentFile;}
     bool isOpenNow() const {return isOpen;}
 
     void clear();
     void openSql(const QString& name);
     void openCsv(const QString& name);
+
+    void convertToCsv(const QString& name);
 
   public slots:
     void fillSqlModel(const QString& name);

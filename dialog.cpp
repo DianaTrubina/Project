@@ -1,6 +1,7 @@
-#include "dialog.h"
+#include <QFileDialog>
 #include <QString>
 #include "mainwindow.h"
+#include "dialog.h"
 
 Dialog::Dialog(QWidget* parent):QDialog(parent)
 {
@@ -75,7 +76,7 @@ void Dialog::actWithDb(const QString& name)
   if (! lst.empty())        // если в базе есть таблицы
     combo->addItems(lst);
   else                      // база пустая
-   combo->addItem((qobject_cast<MainWindow*>(parent()))->whatFileName());
+   combo->addItem(((qobject_cast<MainWindow*>(parent()))->whatCurrentFile()).baseName());
 }
 
 void Dialog::convertToSQL()
@@ -86,7 +87,7 @@ void Dialog::convertToSQL()
     query.exec("DROP TABLE " + combo->currentText() + ";");
   }
 
-  const MyTableModel& model = (qobject_cast<MainWindow*>(parent()))->getModel();
+  const MyTableModel& model = (qobject_cast<MainWindow*>(parent()))->getConstCsvModel();
 
   fillFromHeader(model);
 
@@ -126,13 +127,13 @@ void Dialog::fillFromHeader(const MyTableModel& model)
       QString tmp = whatTypeOfAttribute(model.data(model.index(0, i)).toString()); // тип поля
       str += tmp;
       columnTypes.append(tmp);
-qDebug() << columnTypes;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// qDebug() << columnTypes;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
     else
     {
       str += "TEXT";      // если модель пуста, то в базе все поля будут TEXT
       columnTypes.append("TEXT");
-qDebug() << columnTypes;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// qDebug() << columnTypes;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
 
     if (i != model.columnCount() - 1)
@@ -142,8 +143,8 @@ qDebug() << columnTypes;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   str += ");";
   bool k = query.exec(str);
 
-qDebug() << query.lastQuery() << k; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-qDebug() << model.columnCount(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// qDebug() << query.lastQuery() << k; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// qDebug() << model.columnCount(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 void Dialog::fillFromData(const MyTableModel& model)
@@ -181,7 +182,7 @@ void Dialog::fillFromData(const MyTableModel& model)
     str += ");";  // вернуть ; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     bool k = query.exec(str);
 
-qDebug() << query.lastQuery() << k << query.lastError().text(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!
+// qDebug() << query.lastQuery() << k << query.lastError().text(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!
   }
 
   db.commit();

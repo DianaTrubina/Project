@@ -4,42 +4,15 @@ CsvStream::CsvStream(const QString &name, QObject *parent):file(name), QObject(p
 {
 }
 
-QStringList CsvStream::readLine() // processRecord
+QStringList CsvStream::readLine()
 {
-  QString strRecordLine = createStrRecordLine(file);
+  QString strRecordLine = createStrRecordLine();
   QStringList lstRecordLine = createLstRecordLine(strRecordLine);
-  QString temp;
 
-  /* этот фрагмент заключить в отдельную процедуру и засунуть в createLstRecordLine
-   процедуру назвать что-то типо приведениеКВидуДляПредставления
-
-  for (int i = 0; i < lstRecordLine.size(); ++i)    // идем по всем словам
-  {
-    temp = lstRecordLine.at(i);  // текущее слово
-
-    if ((temp.at(0) == '\"') && (temp.at(temp.size()-1) == '\"'))
-    {
-      temp.remove(0, 1);
-      temp.chop(1);
-    }
-
-    QString::iterator cur = temp.begin(); // первая буква слова
-
-    int j = 0;
-    while (cur != temp.end()) // идем по буквам слова
-    {
-      if ((*cur == '\"') && (*(cur+1) == '\"')) // т.к. символ " представляется в виде "",
-        temp.remove(j+1, 1);                    // то удаляем дублирующую
-
-      ++cur;
-      ++j;
-    }
-
-    lstRecordLine.replace(i, temp);
-  } */
+  return lstRecordLine;
 }
 
-QString CsvStream::createStrRecordLine(QFile& file) // возвращает string с одной записью из файла
+QString CsvStream::createStrRecordLine() // возвращает string с одной записью из файла
 {
   int quoteCount = 1;                   // количество " в строке. 1 - чтобы зайти в цикл
   QString strRecordLine;                // строка таблицы
@@ -60,6 +33,8 @@ QString CsvStream::createStrRecordLine(QFile& file) // возвращает stri
       strRecordLine += '\n' + temp;
   }
 
+// qDebug() << strRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   return strRecordLine;
 }
 
@@ -77,13 +52,95 @@ QStringList CsvStream::createLstRecordLine(const QString& strRecordLine) // во
 
     if (quoteCount %2 != 0)               // кавычки не закрыты
     {
-      cur->clear();
+      // cur->clear();
       (*cur) = temp + ',' + (*(cur+1));   // сливаем текущее слово со следующим
       lstRecordLine.erase(cur + 1);       // удаляем следующее, так как оно уже входит в состав текущего
     }
     else
-      ++cur;  // если кавычки закрыты, то проверяем следующее слово
+    {
+// qDebug() << quoteCount << lstRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      (*cur) = deleteExtraQuotes(*cur);   // если кавычки закрыты, то обрабатываем текущее слово
+      ++cur;                              // и переходим на следующее
+    }
   }
 
+//qDebug() << lstRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
   return lstRecordLine;
+}
+
+QString CsvStream::deleteExtraQuotes(const QString& word)
+{
+  QString temp;
+  temp.reserve(word.size());
+
+  QString::const_iterator first;
+  QString::const_iterator last;
+
+  if ((word.at(0) == '\"') && (word.at(word.size()-1) == '\"'))
+  {
+    first = word.begin() + 1;
+    last = first + word.size() - 2;
+  }
+  else
+  {
+    first = word.begin();
+    last = word.end();
+  }
+
+  QString::const_iterator cur = first;
+  while (cur != last)                         // идем по буквам слова
+    if ((*cur == '\"') && (*(cur+1) == '\"')) // т.к. символ " представляется в виде ""
+    {
+      temp.append(cur->toLatin1());
+      cur += 2;
+    }
+    else
+    {
+      temp.append(cur->toLatin1());
+      ++cur;
+    }
+
+// qDebug() << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  return temp;
+}
+
+QString CsvStream::prepareWordForCsv(const QString& word)
+{
+  QString temp;
+  bool flagSymbols = false;
+
+  if (word.contains(QRegExp("[\\\",\\\n]")))   // в строке есть особые символы
+  {
+    temp.append('\"'); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    flagSymbols = true;
+  }
+
+  for(int i = 0; i < word.size(); ++i)
+  {
+    temp.append(word.at(i));
+
+    if (word.at(i) == '\"')               // попали на кавычку
+      temp.append(word.at(i));            // дублируем ее
+  }
+
+  if (flagSymbols)
+    temp.append('\"');
+
+  return temp;
+}
+
+void CsvStream::writeLine(const QStringList& lstLine)
+{
+  for (int i = 0; i < lstLine.size(); ++i)
+  {
+    file.write(prepareWordForCsv(lstLine.at(i)).toLatin1());
+
+    if (i != lstLine.size() - 1)
+      file.putChar(',');
+  }
+
+  file.putChar('\n');
 }
