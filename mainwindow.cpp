@@ -1,8 +1,9 @@
 #include "mainwindow.h"
-#include <QFileDialog>
 #include "dialog.h"
 
-void MainWindow::createMenuBar(MainWindow* parent)
+#include <QFileDialog>
+
+void MainWindow::createMenuBar(MainWindow* parent) // OK
 {
   menuBar = new QMenuBar(parent);
   QMenu* menuFile = new QMenu("File", menuBar);
@@ -23,7 +24,7 @@ void MainWindow::createMenuBar(MainWindow* parent)
   menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1)->setEnabled(false);
 }
 
-void MainWindow::createToolBar(MainWindow* parent)
+void MainWindow::createToolBar(MainWindow* parent) // OK
 {
   toolBar = new QToolBar(parent);
   tablesBox = new QComboBox(toolBar);
@@ -48,15 +49,18 @@ void MainWindow::createConnections()
   button = menuBar->actions().at(0)->menu()->actions().at(3);           // exit application
   connect(button, SIGNAL(triggered(bool)), qApp, SLOT(quit()));
 
-  // выбор показа таблицы
-  connect(tablesBox, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(setModelForTable(const QString&)));
+  // заполнение модели соотвествующей таблицей    OK
+  connect(tablesBox, SIGNAL(currentIndexChanged(const QString&)), &guts, SLOT(fillSqlModel(const QString&)));
+
+  // заполнение tablexBox списком таблиц базы   ОК
+  connect(&guts, SIGNAL(sendListOfTables(const QStringList&)), this, SLOT(slotFillBox(const QStringList&)));
 }
 
-void MainWindow::makeEnabled(const QString& str)
+void MainWindow::makeEnabled(const QString& fileType) // OK
 {
   menuBar->actions().at(0)->menu()->actions().at(1)->setEnabled(true);  // convert to...
 
-  if (str == "sql")
+  if (fileType == "sql")
   {
     menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(0)->setEnabled(true); // to csv
     tablesBox->setEnabled(true);
@@ -65,7 +69,7 @@ void MainWindow::makeEnabled(const QString& str)
     menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(1)->setEnabled(true); // to sql
 }
 
-void MainWindow::makeDisabled()
+void MainWindow::makeDisabled() // OK
 {
   menuBar->actions().at(0)->menu()->actions().at(1)->setEnabled(false);  // convert to...
   menuBar->actions().at(0)->menu()->actions().at(1)->menu()->actions().at(0)->setEnabled(false); // to csv
@@ -74,201 +78,40 @@ void MainWindow::makeDisabled()
   tablesBox->setEnabled(false);
 }
 
-void MainWindow::setModelForTable(const QString & name)
-{
-  if (!(name == "")) // чтобы не было реакции при очистке через makeDisabled()
-  {
-    QSqlQuery query(db);
-    query.exec("SELECT * FROM " + name + ";");
-
-    model.setQuery(query);
-  }
-}
-
-void MainWindow::slotOpen()
+void MainWindow::slotOpen() // OK??
 {
   QString name = QFileDialog::getOpenFileName(this, "Explorer", "", "SQLite files(*.sqlite *.db);;CSV files(*.csv)");
 
   if (name != "")         // если реально выбрали файл, а не нажали Cancel
   {
-    currentFile = QFileInfo(name);
-
-    if (isOpen)           // если нажали Open 2 раза подряд
+    if (guts.isOpenNow())           // если нажали Open 2 раза подряд
     {
       makeDisabled();     // приводим видимость виджетов в исходное "пустое" состояние
-      model.clear();      // чистим модель и, следовательно, представление
-      csvModel.clear();
-
-      if (db.isOpen())    // если в прошлый Open открывалась база
-        db.close();
-
-      isOpen = false;     // сбрасываем состояние
+      guts.clear();
     }
 
     if (name.endsWith(".sqlite") || name.endsWith(".db"))
     {
-      view->setModel(&model);
-      isOpen = true;
       makeEnabled("sql");
-      openSql(name);
+      view->setModel(guts.getSqlModel());
+      guts.openSql(name);
     }
     else
       if (name.endsWith(".csv"))
       {
-        view->setModel(&csvModel);
-        isOpen = true;
         makeEnabled("csv");
-        openCsv(name);
+        view->setModel(guts.getCsvModel());
+        guts.openCsv(name);
       }
   }
 }
 
-void MainWindow::openSql(const QString& name)
+void MainWindow::slotFillBox(const QStringList& tables) // OK??
 {
-  db = QSqlDatabase::addDatabase("QSQLITE");
-  db.setDatabaseName(name);
-  db.open();
-
-  tablesBox->addItems(db.tables());
+  tablesBox->addItems(tables);
 }
 
-void MainWindow::openCsv(const QString& name)
-{
-  QFile file(name);
-  file.open(QIODevice::ReadOnly);
-
-  QStringList fields; // в первом случае - заголовки столбцов, во втором - поля записи
-  processRecord(file, fields);
-
-  csvModel.insertColumns(0, fields.size());
-
-  for (int j = 0; j < fields.size(); ++j)
-    csvModel.setHeaderData(j, Qt::Horizontal, fields.at(j));
-
-// qDebug() << lstheaders.size() << csvModel.rowCount() << csvModel.columnCount(); // !!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  int rows = 0;
-  while (!file.atEnd()) // если в файле была только строка шапки, то сюда даже не зайдем
-  {
-    processRecord(file, fields);
-    csvModel.insertRows(rows, 1);
-
-    for (int j = 0; j < fields.size(); ++j)
-    {
-      csvModel.setData(csvModel.index(rows, j), fields.at(j));
-
-// qDebug() << lstheaders << rows; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    }
-
-    ++rows;
-  }
-
-  file.close();
-}
-
-QString MainWindow::handleFileString(QFile& file)
-{
-  int quoteCount = 1;                // количество " в строке. 1 - чтобы зайти в цикл
-  QString strRecordLine;             // строка таблицы
-
-  while (quoteCount % 2 != 0)        // кавычек нечетное кол-во (случай: xxx,"x \n x",xxx)
-  {
-    QString temp(file.readLine());   // считывает до первого \n
-
-qDebug() << "1  | " << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    temp.remove("\r\n");
-    if (temp.at(temp.size()-1) == '\n')
-      temp.chop(1);
-
-//qDebug() << "2  | " << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-    quoteCount = temp.count('\"');   // сколько раз встретилась "
-
-    if (strRecordLine.isEmpty())
-      strRecordLine = temp;
-    else    // strheaders += temp;
-      strRecordLine += '\n' + temp;     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  }
-
-qDebug() << "3  | " << strRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  return strRecordLine;
-}
-
-void MainWindow::handleString(QStringList& lstRecordLine)
-{
-qDebug() << "111| " << lstRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  int quoteCount = 0;
-  QStringList::iterator cur = lstRecordLine.begin();
-
-  while (cur != lstRecordLine.end())          // пока не пройдем весь список
-  {
-    QString temp = *cur;                  // получили текущее слово
-    quoteCount = temp.count('\"');        // сколько раз встретилась "
-
-    if (quoteCount %2 != 0)
-    {
-      cur->clear();
-      (*cur) = temp + ',' + (*(cur+1)); // сливаю 2 строки.  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     // lstRecordLine.replace(i, temp+','+lstRecordLine.at(i+1));
-      lstRecordLine.erase(cur + 1);  // надеюсь сработает   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    }
-    else
-      ++cur;
-  }
-
-qDebug() << "222| " <<  lstRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-}
-
-void MainWindow::processRecord(QFile& file, QStringList& lstRecordLine)
-{
-  lstRecordLine = handleFileString(file).split(',');  // разбили строку по , на поля
-  handleString(lstRecordLine);
-
-  QString temp = lstRecordLine.at(0);               // смотрим самое первое слово
-/*  if (temp.at(0) == '\"')                        // смотрим его первый символ
-  {
-    temp.remove(0, 1);                           // удаляем, если это "
-    lstRecordLine.replace(0, temp);
-  }
-
-  temp = lstRecordLine.at(lstRecordLine.size()-1);   // смотрим самое последнее слову
-  if (temp.at(temp.size() - 1) == '\"')          // смотрим ее последний символ
-  {
-    temp.chop(1);                                // удаляем, если это "
-    lstRecordLine.replace(temp.size()-1, temp);
-  } */
-
-  for (int i = 0; i < lstRecordLine.size(); ++i)    // идем по всем словам
-  {
-    temp = lstRecordLine.at(i);
-
-    if ((temp.at(0) == '\"') && (temp.at(temp.size()-1) == '\"'))
-    {
-      temp.remove(0, 1);
-      temp.chop(1);
-     // lstRecordLine.replace(i, temp);
-    }
-
-    QString::iterator cur = temp.begin();
-
-    int j = 0;
-    while (cur != temp.end())
-    {
-      if ((*cur == '\"') && (*(cur+1) == '\"')) // в слове может быть только от двух кавычек подряд
-        temp.remove(j+1, 1);
-
-      ++cur;
-      ++j;
-    }
-
-    lstRecordLine.replace(i, temp);
-  }
-}
-
-void MainWindow::convertToSql()
+void MainWindow::convertToSql() // OK
 {
   dialog = new Dialog(this);
   dialog->exec();
@@ -334,7 +177,7 @@ void MainWindow::handleWordToCsv(QFile& file, QString word)
     file.putChar('\"');
 }
 
-MainWindow::MainWindow(QWidget* parent):QMainWindow(parent)
+MainWindow::MainWindow(QWidget* parent):QMainWindow(parent) // OK
 {
   resize(1024, 768);
 

@@ -27,9 +27,13 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     dialog.cpp \
-    mytablemodel.cpp
+    mytablemodel.cpp \
+    mainengine.cpp \
+    csvstream.cpp
 
 HEADERS += \
         mainwindow.h \
     dialog.h \
-    mytablemodel.h
+    mytablemodel.h \
+    mainengine.h \
+    csvstream.h

@@ -3,13 +3,9 @@
 
 #include <QMainWindow>
 #include <QtWidgets>        //qtableview
-#include <QtSql>
-#include <QFileInfo>
-#include <QFile>
-#include <QStringList>
 #include <QString>
 
-#include "mytablemodel.h"
+#include "mainengine.h"
 
 class Dialog;
 
@@ -18,11 +14,7 @@ class MainWindow: public QMainWindow
   Q_OBJECT
 
   private:
-    bool isOpen = false;
-
-    QSqlDatabase db;          // соединение с бд
-    QSqlQueryModel model;
-    MyTableModel csvModel;
+    MainEngine guts;
 
     QMenuBar* menuBar;
     QToolBar* toolBar;
@@ -30,38 +22,19 @@ class MainWindow: public QMainWindow
     QComboBox* tablesBox;
     Dialog* dialog;
 
-    QFileInfo currentFile;
-
-    void createMenuBar(MainWindow* parent);
-    void createToolBar(MainWindow* parent);
-    void makeEnabled(const QString& str);
-    void makeDisabled();
+    void createMenuBar(MainWindow* parent); // OK
+    void createToolBar(MainWindow* parent); // OK
+    void makeEnabled(const QString& fileType); // OK     fileType: csv либо sql
+    void makeDisabled(); // OK
     void createConnections();
-    void openSql(const QString& name);
-    void openCsv(const QString& name);
-
-    void processRecord(QFile& file, QStringList& lstRecordLine);
-    QString handleFileString(QFile& file);
-    void handleString(QStringList& lstRecordLine);
-
-    void handleWordToCsv(QFile &file, QString word);
 
   public:
     MainWindow(QWidget* parent = 0);
 
-    const MyTableModel& getModel() // тип модели !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    {
-      return csvModel;
-    }
-
-    QString whatFileName() const
-    {
-      return currentFile.baseName();
-    }
-
   public slots:
     void slotOpen();                               // открыть проводник
-    void setModelForTable(const QString& name);
+    void slotFillBox(const QStringList& tables);
+
     void convertToSql();
     void convertToCsv();
 };

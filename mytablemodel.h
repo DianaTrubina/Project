@@ -15,15 +15,8 @@ class MyTableModel:public QAbstractTableModel
   public:
     MyTableModel(QObject* parent = 0);
 
-    int rowCount(const QModelIndex& = QModelIndex()) const
-    {
-      return rows;
-    }
-
-    int columnCount(const QModelIndex& = QModelIndex()) const
-    {
-      return columns;
-    }
+    int rowCount(const QModelIndex& = QModelIndex()) const {return rows;}
+    int columnCount(const QModelIndex& = QModelIndex()) const {return columns;}
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;   // геттер данных
     bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole); //сеттер одной ячейки
