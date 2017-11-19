@@ -52,20 +52,15 @@ QStringList CsvStream::createLstRecordLine(const QString& strRecordLine) // во
 
     if (quoteCount %2 != 0)               // кавычки не закрыты
     {
-      // cur->clear();
       (*cur) = temp + ',' + (*(cur+1));   // сливаем текущее слово со следующим
       lstRecordLine.erase(cur + 1);       // удаляем следующее, так как оно уже входит в состав текущего
     }
     else
     {
-// qDebug() << quoteCount << lstRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
       (*cur) = deleteExtraQuotes(*cur);   // если кавычки закрыты, то обрабатываем текущее слово
       ++cur;                              // и переходим на следующее
     }
   }
-
-//qDebug() << lstRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   return lstRecordLine;
 }
@@ -102,8 +97,6 @@ QString CsvStream::deleteExtraQuotes(const QString& word)
       ++cur;
     }
 
-// qDebug() << temp; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   return temp;
 }
 
@@ -114,7 +107,7 @@ QString CsvStream::prepareWordForCsv(const QString& word)
 
   if (word.contains(QRegExp("[\\\",\\\n]")))   // в строке есть особые символы
   {
-    temp.append('\"'); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    temp.append('\"');
     flagSymbols = true;
   }
 
