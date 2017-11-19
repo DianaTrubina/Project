@@ -14,20 +14,20 @@ QStringList CsvStream::readLine()
 
 QString CsvStream::createStrRecordLine() // возвращает string с одной записью из файла
 {
-  int quoteCount = 1;                   // количество " в строке. 1 - чтобы зайти в цикл
-  QString strRecordLine;                // строка таблицы
+  int quoteCount = 1;                    // количество " в строке. 1 - чтобы зайти в цикл
+  QString strRecordLine;                 // строка таблицы
 
-  while (quoteCount % 2 != 0)           // кавычек нечетное кол-во (случай: xxx,"x \n x",xxx)
+  while (quoteCount % 2 != 0)            // кавычек нечетное кол-во (случай: xxx,"x \n x",xxx)
   {
-    QString temp(file.readLine());      // считывает до первого \n
-    temp.remove("\r\n");                // удаляем символ перехода на новую строку (в винде \r\n)
+    QString temp(file.readLine());       // считывает до первого \n
+    temp.remove("\r\n");                 // удаляем символ перехода на новую строку (в винде \r\n)
 
-    if (temp.at(temp.size()-1) == '\n') // если символ был не \r\n, а просто \n, то удаляем его
+    if (temp.at(temp.size()-1) == '\n')  // если символ был не \r\n, а просто \n, то удаляем его
       temp.chop(1);
 
-    quoteCount = temp.count('\"');      // сколько раз встретилась "
+    quoteCount = temp.count('\"');       // сколько раз встретилась "
 
-    if (strRecordLine.isEmpty())        // агрегируем слова в одну строку-запись
+    if (strRecordLine.isEmpty())         // агрегируем слова в одну строку-запись
       strRecordLine = temp;
     else
       strRecordLine += '\n' + temp;

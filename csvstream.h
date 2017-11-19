@@ -21,6 +21,8 @@ class CsvStream: public QObject
     QString prepareWordForCsv(const QString& word); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   public:
+   // CsvStream():QObject(0) {file.setFileName("abc.csv");} // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     CsvStream(const QString& name, QObject *parent = 0);
 
     void open(QFile::OpenMode flags) {file.open(flags);}
@@ -28,11 +30,12 @@ class CsvStream: public QObject
 
     void close() {file.close();}
     bool atEnd() {return file.atEnd();}
-   // bool putChar(char c) {return file.putChar(c);}
 
     QStringList readLine();
     void writeLine(const QStringList& lstLine);
 
+
+  //  QString deleteExtraQuotes(const QString& word); // !!!!!!!!!!!!!!!!!!!!!!!!!!
 };
 
 #endif // CSVSTREAM_H
