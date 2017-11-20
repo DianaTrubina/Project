@@ -94,13 +94,12 @@ void MainWindow::slotOpen() // OK??
       view->setModel(guts.getSqlModel());
       guts.openSql(name);
     }
-    else
-      if (name.endsWith(".csv"))
-      {
-        makeEnabled("csv");
-        view->setModel(guts.getCsvModel());
-        guts.openCsv(name);
-      }
+    else if (name.endsWith(".csv"))
+    {
+      makeEnabled("csv");
+      view->setModel(guts.getCsvModel());
+      guts.openCsv(name);
+    }
   }
 }
 
@@ -124,7 +123,7 @@ void MainWindow::convertToCsv()
     guts.convertToCsv(name);
 }
 
-MainWindow::MainWindow(QWidget* parent):QMainWindow(parent) // OK
+MainWindow::MainWindow(QWidget* parent): QMainWindow(parent) // OK
 {
   resize(1024, 768);
 

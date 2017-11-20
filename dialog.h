@@ -8,9 +8,17 @@
 
 #include "mytablemodel.h"
 
+/**
+ * @brief It is a convenient dialog window, where you can choose a SQLite database and
+ * specife a table in it, which you want your csv-file to be converted to.
+ *
+ * - If there is no such database, then it will be created.
+ * - If database contains such table, then it will be overwrited.
+ * - If there are no tables in the database, then current csv-file name will be suggested.
+ */
 class Dialog : public QDialog
 {
-  Q_OBJECT
+    Q_OBJECT
 
   private:
     QSqlDatabase db;
@@ -29,9 +37,19 @@ class Dialog : public QDialog
     void fillFromData(const MyTableModel& model);
 
   public:
-    Dialog(QWidget* parent = 0);
 
-  public slots:
+    /**
+     * @brief Creates a dialog window with given parent.
+     * @param parent: parent of this window.
+     */
+    explicit Dialog(QWidget* parent = 0); // explicit
+
+  private slots:
+
+    /**
+     * @brief Creates a native explorer window, where you can choose the database,
+     * which your csv-file will be saved into.
+     */
     void aqcuireDbName();
     void actWithDb(const QString& name);
     void convertToSQL();

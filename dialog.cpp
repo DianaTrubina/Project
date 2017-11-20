@@ -3,7 +3,7 @@
 #include "mainwindow.h"
 #include "dialog.h"
 
-Dialog::Dialog(QWidget* parent):QDialog(parent)
+Dialog::Dialog(QWidget* parent): QDialog(parent)
 {
   setFixedSize(300, 200);
 
@@ -52,7 +52,7 @@ void Dialog::aqcuireDbName()
 {
   QString dbName = QFileDialog::getSaveFileName(this, "Explorer", "", "SQLite files(*.sqlite *.db)", Q_NULLPTR, QFileDialog::DontConfirmOverwrite);
 
-  if(dbName != "")          // если реально был выбран файл, а не нажали Cancel
+  if (dbName != "")         // если реально был выбран файл, а не нажали Cancel
     edit->setText(dbName);
 }
 
@@ -76,7 +76,7 @@ void Dialog::actWithDb(const QString& name)
   if (! lst.empty())        // если в базе есть таблицы
     combo->addItems(lst);
   else                      // база пустая
-   combo->addItem(((qobject_cast<MainWindow*>(parent()))->whatCurrentFile()).baseName());
+    combo->addItem(((qobject_cast<MainWindow*>(parent()))->whatCurrentFile()).baseName());
 }
 
 void Dialog::convertToSQL()
@@ -104,10 +104,10 @@ QString Dialog::whatTypeOfAttribute(const QString& str) const
   QRegExp reg("^\\-?\\d+\\.+\\d+$");
 
   if (str.contains(reg))
-     return "REAL";
+    return "REAL";
 
   reg = QRegExp("^\\-?\\d+$");
-  if(str.contains(reg))
+  if (str.contains(reg))
     return "INTEGER";
 
   return "TEXT";
@@ -127,13 +127,11 @@ void Dialog::fillFromHeader(const MyTableModel& model)
       QString tmp = whatTypeOfAttribute(model.data(model.index(0, i)).toString()); // тип поля
       str += tmp;
       columnTypes.append(tmp);
-// qDebug() << columnTypes;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
     else
     {
       str += "TEXT";      // если модель пуста, то в базе все поля будут TEXT
       columnTypes.append("TEXT");
-// qDebug() << columnTypes;  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
 
     if (i != model.columnCount() - 1)
@@ -141,10 +139,7 @@ void Dialog::fillFromHeader(const MyTableModel& model)
   }
 
   str += ");";
-  bool k = query.exec(str);
-
-// qDebug() << query.lastQuery() << k; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// qDebug() << model.columnCount(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  query.exec(str);
 }
 
 void Dialog::fillFromData(const MyTableModel& model)
@@ -160,29 +155,27 @@ void Dialog::fillFromData(const MyTableModel& model)
 
     for (int j = 0; j < model.columnCount(); ++j)
     {
-      str += model.headerData(j,Qt::Horizontal).toString();
+      str += model.headerData(j, Qt::Horizontal).toString();
 
       if (j != model.columnCount() - 1)
         str += ", ";
     }
 
-    str+= ") VALUES (";
+    str += ") VALUES (";
 
     for (int j = 0; j < model.columnCount(); j++)
     {
       if (columnTypes.at(j) == "TEXT")
-        str +="\'" + model.data(model.index(i, j)).toString() + "\'"; // вставляем как строку, база сама преобразует
+        str += "\'" + model.data(model.index(i, j)).toString() + "\'"; // вставляем как строку, база сама преобразует
       else
-        str +=model.data(model.index(i, j)).toString(); // вставляем как строку, база сама преобразует
+        str += model.data(model.index(i, j)).toString(); // вставляем как строку, база сама преобразует
 
       if (j != model.columnCount() - 1)
         str += ", ";
     }
 
-    str += ");";  // вернуть ; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    bool k = query.exec(str);
-
-// qDebug() << query.lastQuery() << k << query.lastError().text(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1!!
+    str += ");";
+    query.exec(str);
   }
 
   db.commit();

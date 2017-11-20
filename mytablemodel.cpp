@@ -1,6 +1,6 @@
 #include "mytablemodel.h"
 
-MyTableModel::MyTableModel(QObject* parent):QAbstractTableModel(parent)
+MyTableModel::MyTableModel(QObject* parent): QAbstractTableModel(parent)
 {
 }
 
@@ -37,11 +37,11 @@ bool MyTableModel::setHeaderData(int section, Qt::Orientation orientation, const
 {
   if (role == Qt::EditRole)
   {
-  headers[section] = value.toString();
-  columns = section + 1;
-  emit headerDataChanged(orientation, section, section);
+    headers[section] = value.toString();
+    columns = section + 1;
+    emit headerDataChanged(orientation, section, section);
 
-  return true;
+    return true;
   }
   else
     return false;

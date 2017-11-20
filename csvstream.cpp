@@ -1,6 +1,6 @@
 #include "csvstream.h"
 
-CsvStream::CsvStream(const QString &name, QObject *parent):file(name), QObject(parent)
+CsvStream::CsvStream(const QString& name, QObject* parent): file(name), QObject(parent)
 {
 }
 
@@ -22,7 +22,7 @@ QString CsvStream::createStrRecordLine() // возвращает string с од�
     QString temp(file.readLine());       // считывает до первого \n
     temp.remove("\r\n");                 // удаляем символ перехода на новую строку (в винде \r\n)
 
-    if (temp.at(temp.size()-1) == '\n')  // если символ был не \r\n, а просто \n, то удаляем его
+    if (temp.at(temp.size() - 1) == '\n') // если символ был не \r\n, а просто \n, то удаляем его
       temp.chop(1);
 
     quoteCount = temp.count('\"');       // сколько раз встретилась "
@@ -33,8 +33,6 @@ QString CsvStream::createStrRecordLine() // возвращает string с од�
       strRecordLine += '\n' + temp;
   }
 
-// qDebug() << strRecordLine; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   return strRecordLine;
 }
 
@@ -42,17 +40,16 @@ QStringList CsvStream::createLstRecordLine(const QString& strRecordLine) // во
 {
   QStringList lstRecordLine = strRecordLine.split(',');
 
-  int quoteCount = 0;
   QStringList::iterator cur = lstRecordLine.begin();
 
   while (cur != lstRecordLine.end())      // пока не пройдем весь список
   {
     QString temp = *cur;                  // получили текущее слово
-    quoteCount = temp.count('\"');        // сколько раз встретилась "
+    int quoteCount = temp.count('\"');        // сколько раз встретилась "
 
-    if (quoteCount %2 != 0)               // кавычки не закрыты
+    if (quoteCount % 2 != 0)              // кавычки не закрыты
     {
-      (*cur) = temp + ',' + (*(cur+1));   // сливаем текущее слово со следующим
+      (*cur) = temp + ',' + (*(cur + 1)); // сливаем текущее слово со следующим
       lstRecordLine.erase(cur + 1);       // удаляем следующее, так как оно уже входит в состав текущего
     }
     else
@@ -73,7 +70,7 @@ QString CsvStream::deleteExtraQuotes(const QString& word)
   QString::const_iterator first;
   QString::const_iterator last;
 
-  if ((word.at(0) == '\"') && (word.at(word.size()-1) == '\"'))
+  if ((word.at(0) == '\"') && (word.at(word.size() - 1) == '\"'))
   {
     first = word.begin() + 1;
     last = first + word.size() - 2;
@@ -86,7 +83,7 @@ QString CsvStream::deleteExtraQuotes(const QString& word)
 
   QString::const_iterator cur = first;
   while (cur != last)                         // идем по буквам слова
-    if ((*cur == '\"') && (*(cur+1) == '\"')) // т.к. символ " представляется в виде ""
+    if ((*cur == '\"') && (*(cur + 1) == '\"')) // т.к. символ " представляется в виде ""
     {
       temp.append(cur->toLatin1());
       cur += 2;
@@ -111,7 +108,7 @@ QString CsvStream::prepareWordForCsv(const QString& word)
     flagSymbols = true;
   }
 
-  for(int i = 0; i < word.size(); ++i)
+  for (int i = 0; i < word.size(); ++i)
   {
     temp.append(word.at(i));
 

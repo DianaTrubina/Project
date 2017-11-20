@@ -10,9 +10,13 @@
 
 class Dialog;
 
+/**
+ * @brief The main window of the application. Contains a table view for viewing csv and SQLite files,
+ * menu with open/close/convert options and combobox for choosing database tables.
+ */
 class MainWindow: public QMainWindow
 {
-  Q_OBJECT
+    Q_OBJECT
 
   private:
     MainEngine guts;
@@ -30,12 +34,31 @@ class MainWindow: public QMainWindow
     void createConnections();
 
   public:
-    MainWindow(QWidget* parent = 0);
 
-    const QFileInfo& whatCurrentFile() {return guts.getCurrentFile();}
-    const MyTableModel& getConstCsvModel() {return guts.getConstLinkCsvModel();}
+    /**
+     * @brief Creates a main window.
+     * @param parent: is always 0.
+     */
+    explicit MainWindow(QWidget* parent = 0); // explicit
 
-  public slots:
+    /**
+     * @brief Returns the information about currently opened file.
+     */
+    const QFileInfo& whatCurrentFile()
+    {
+      return guts.getCurrentFile();
+    }
+
+    /**
+     * @brief Returns constant link to the model, storing csv-file representation in the
+     * application.
+     */
+    const MyTableModel& getConstCsvModel()
+    {
+      return guts.getConstLinkCsvModel();
+    }
+
+  private slots:
     void slotOpen();                               // открыть проводник
     void slotFillBox(const QStringList& tables);
 

@@ -4,7 +4,7 @@
 #include "mainengine.h"
 #include "csvstream.h"
 
-MainEngine::MainEngine(QObject* parent):QObject(parent)
+MainEngine::MainEngine(QObject* parent): QObject(parent)
 {
 }
 
@@ -46,19 +46,19 @@ void MainEngine::openCsv(const QString& name)
   isOpen = true;
   currentFile = QFileInfo(name);
 
-  CsvStream csv(name, this); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  csv.open(QIODevice::ReadOnly); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  CsvStream csv(name, this);
+  csv.open(QIODevice::ReadOnly);
 
-  QStringList line = csv.readLine(); // в первом случае - заголовки столбцов, во втором - поля записи !!!!!!!!!!
+  QStringList line = csv.readLine(); // в первом случае - заголовки столбцов, во втором - поля записи
   csvModel.insertColumns(0, line.size());
 
   for (int j = 0; j < line.size(); ++j)
     csvModel.setHeaderData(j, Qt::Horizontal, line.at(j));
 
   int rows = 0;
-  while (!csv.atEnd()) // если в файле была только строка шапки, то сюда даже не зайдем !!!!!!!!!!!!!
+  while (!csv.atEnd()) // если в файле была только строка шапки, то сюда даже не зайдем
   {
-    line = csv.readLine();     // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    line = csv.readLine();
     csvModel.insertRows(rows, 1);
 
     for (int j = 0; j < line.size(); ++j)
@@ -67,17 +67,17 @@ void MainEngine::openCsv(const QString& name)
     ++rows;
   }
 
-  csv.close(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  csv.close();
 }
 
 void MainEngine::convertToCsv(const QString& name)
 {
-  CsvStream csv(name, this); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  csv.open(QIODevice::WriteOnly | QIODevice::Truncate); // транкейт !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  CsvStream csv(name, this);
+  csv.open(QIODevice::WriteOnly | QIODevice::Truncate); // транкейт
 
   QStringList lstLine;
 
-  for(int j = 0; j < model.columnCount(); ++j)
+  for (int j = 0; j < model.columnCount(); ++j)
     lstLine.append(model.headerData(j, Qt::Horizontal).toString());
 
   csv.writeLine(lstLine);
@@ -92,7 +92,7 @@ void MainEngine::convertToCsv(const QString& name)
     csv.writeLine(lstLine);
   }
 
-  csv.close(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  csv.close();
 }
 
 

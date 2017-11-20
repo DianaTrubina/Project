@@ -7,12 +7,16 @@
 #include <QStringList>
 #include <QFile>
 
+/**
+* @brief This class handles the interaction with csv-files. It gives the opportunity to connect
+* to the file and read/write rows.
+*/
 class CsvStream: public QObject
 {
-  Q_OBJECT
+    Q_OBJECT
 
   private:
-    QFile file;
+    QFile file; // ? какой-то варнинг, хотя по книге все нормально
 
     QString createStrRecordLine(); // !!!!!!!!!!!!!!!!!!!!!!!!!!!
     QStringList createLstRecordLine(const QString& strRecordLine); // OK
@@ -21,13 +25,49 @@ class CsvStream: public QObject
     QString prepareWordForCsv(const QString& word); // OK
 
   public:
-    CsvStream(const QString& name, QObject *parent = 0);
 
-    void open(QFile::OpenMode flags) {file.open(flags);}
-    void close() {file.close();}
-    bool atEnd() {return file.atEnd();}
+    /**
+     * @brief Creates a csv-file object with given path and parent.
+     * @param name: absolute path to the file.
+     * @param parent: parent of this object.
+     */
+    CsvStream(const QString& name, QObject* parent = 0);
 
+    /**
+     * @brief Opens a file with given flags.
+     * @param flags: standart OpenMode flags.
+     */
+    void open(QFile::OpenMode flags)
+    {
+      file.open(flags);
+    }
+
+    /**
+     * @brief Closes the file, freeing occupied resources.
+     */
+    void close()
+    {
+      file.close();
+    }
+
+    /**
+     * @brief Checks, if current position is the end of file.
+     */
+    bool atEnd()
+    {
+      return file.atEnd();
+    }
+
+    /**
+     * @brief Reads one line from file and returns the fields of record as list.
+     * @return QStringList with fields of a record.
+     */
     QStringList readLine();
+
+    /**
+     * @brief Write one line, represented by list of fields, into csv-file.
+     * @param lstline: list, containig fields of a record.
+     */
     void writeLine(const QStringList& lstLine);
 };
 
